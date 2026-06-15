@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-insert-admin-user
+      author: Koder95
+      changes:
+        - insert:
+            tableName: emails
+            columns:
+                - column:
+                    name: "id"
+                    value: 1
+                - column:
+                    name: "value"
+                    value: "admin@example.com"
+                - column:
+                    name: "is_deleted"
+                    valueBoolean: false
+        - insert:
+            tableName: users
+            columns:
+                - column:
+                    name: "id"
+                    value: 1
+                - column:
+                    name: "email_id"
+                    value: 1
+                - column:
+                    name: "password_hash"
+                    value: "$2a$10$7NOtYTd9vQYuJMaw6PWuBuU1gNvTlkQPDqSO2OziB4RlhrPeyyXf2"
+                - column:
+                    name: "authority"
+                    value: "ROLE_ADMIN"
+                - column:
+                    name: "is_deleted"
+                    valueBoolean: false

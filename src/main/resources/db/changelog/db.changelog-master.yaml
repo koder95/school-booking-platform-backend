@@ -3,3 +3,5 @@ databaseChangeLog:
       file: db/changelog/changes/000-create-emails-table.yml
   - include:
       file: db/changelog/changes/001-create-users-table.yml
+  - include:
+      file: db/changelog/changes/002-insert-admin-user.yml
