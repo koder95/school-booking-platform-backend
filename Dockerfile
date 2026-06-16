@@ -16,6 +16,6 @@ WORKDIR school-booking-platform-backend
 COPY --from=builder school-booking-platform-backend/dependencies/ ./
 COPY --from=builder school-booking-platform-backend/spring-boot-loader/ ./
 COPY --from=builder school-booking-platform-backend/application/ ./
-ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:54342", "org.springframework.boot.loader.launch.JarLauncher"]
 EXPOSE 8080
 EXPOSE 54342
