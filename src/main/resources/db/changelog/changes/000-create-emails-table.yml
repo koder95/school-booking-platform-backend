@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: 000-create-emails-table
+      author: Koder95
+      changes:
+        - createTable:
+            tableName: emails
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: value
+                  type: varchar(50)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: is_deleted
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
