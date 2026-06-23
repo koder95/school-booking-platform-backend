@@ -171,6 +171,60 @@ magic-link.paramName=token            # Query parameter name for the token
   - Token decryption fails
   - Token is malformed or null
 
+## Email delivery logging, MailHog (local testing) & Login notifications
+
+Recent changes introduce email delivery logging and support for local email capture using MailHog. The application now records each attempted email delivery and persists a delivery log with status tracking.
+
+Key points:
+
+- New model: `EmailDeliveryLog` with fields: `recipient` (Email), `subject`, `body` (TEXT), `status` (PENDING/SENT/FAILED), `createdAt`, `errorMessage`, and soft-delete (`isDeleted`). See: `src/main/java/pl/koder95/sbp/backend/model/EmailDeliveryLog.java`.
+- New DTO: `SendEmailRequestDto` (validated recipient, subject, body) and `DeliveryStatus` enum.
+- Repository: `EmailDeliveryLogRepository` added with helper `findByStatus`.
+- Service: `EmailDeliveryService` (interface) and `EmailDeliveryServiceImpl` which:
+  - Validates requests
+  - Persists an initial delivery log (status PENDING)
+  - Sends email via `JavaMailSender`
+  - Updates the log to SENT or FAILED and records stacktrace on failure
+  - Ensures an `Email` entity exists for the recipient when persisting the log
+
+Sending login notification:
+
+- On successful login the backend triggers a login notification email for the user. This behavior is implemented in `AuthenticationServiceImpl.login` where it calls `EmailDeliveryService.send` with a login notification payload.
+
+MailHog support (docker-compose):
+
+- A MailHog service has been added to docker-compose for local development and integration tests. MailHog exposes SMTP on port `1025` and a web UI on port `8025`.
+- The docker-compose service includes a healthcheck and the application is configured to wait for MailHog to be healthy before starting (useful in integration environments).
+
+Example docker-compose snippet (conceptual):
+```yaml
+mailhog:
+  image: mailhog/mailhog:latest
+  ports:
+    - "1025:1025"   # SMTP
+    - "8025:8025"   # Web UI
+  restart: unless-stopped
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:8025" ]
+    interval: 10s
+    timeout: 2s
+    retries: 5
+```
+
+Example test Spring properties (`src/test/resources/application-test.properties`):
+```properties
+spring.mail.host=localhost
+spring.mail.port=1025
+spring.mail.username=
+spring.mail.password=
+spring.mail.properties.mail.smtp.auth=false
+spring.mail.properties.mail.smtp.starttls.enable=false
+```
+
+Database changelog:
+
+- A Liquibase changelog was added to create the `email_delivery_logs` table and the foreign key to the `emails` table. Check the repository's changelog under `src/main/resources/db/changelog` for the exact changeset.
+
 ## Notes & Validation
 
 - Email creation/validation elsewhere in the API uses the following DTO (`EmailValueDto`):
@@ -204,4 +258,5 @@ curl -H "Authorization: Bearer <token>" "http://localhost:8080/api/emails?page=0
   UI** (commonly available at `/swagger-ui.html` or `/swagger-ui/index.html` when
   **springdoc-openapi** is configured) or consult the controller and DTO source
   code in `src/main/java/pl/koder95/sbp/backend`.
+
 
