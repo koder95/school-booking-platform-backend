@@ -20,7 +20,9 @@ services:
         condition: service_healthy
     restart: on-failure
     image: sbp-backend
-    build: .
+    build:
+      context: .
+      no_cache: true
     env_file: ./.env
     ports:
       - "8082:8080"
