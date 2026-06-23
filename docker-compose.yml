@@ -1,4 +1,15 @@
 services:
+  mailhog:
+    image: mailhog/mailhog
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "8025" ]
+      interval: 5s
+      timeout: 3s
+      retries: 30
   postgresdb:
     image: postgres
     restart: unless-stopped
@@ -16,6 +27,8 @@ services:
       retries: 30
   app:
     depends_on:
+      mailhog:
+        condition: service_healthy
       postgresdb:
         condition: service_healthy
     restart: on-failure
