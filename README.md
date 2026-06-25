@@ -92,6 +92,281 @@ Errors:
 - **401 Unauthorized** — when token is missing or invalid
 - **403 Forbidden** — when authenticated user does not have ADMIN role
 
+### 3) :mortar_board: Teacher management
+
+The project now exposes REST endpoints to manage Teacher entities. Teachers
+have a UUID primary key and are associated one-to-one with an existing `Email`
+entity (referenced by `emailId` in the DB). Teachers support soft-delete.
+
+All teacher endpoints require a valid bearer token. Role requirements are
+noted per endpoint.
+
+#### `GET /api/teachers`
+
+Description: Retrieve a paginated list of teachers.
+
+Authorization: Bearer <token>
+
+Roles: ADMIN only
+
+Query parameters (optional):
+- `page` (int) — page index, 0-based
+- `size` (int) — page size
+- `sort` (String) — sort specification
+
+Response JSON (`Page<TeacherDto>`):
+```json
+{
+  "content": [
+    {
+      "uuid": "550e8400-e29b-41d4-a716-446655440000",
+      "emailId": 123,
+      "firstName": "Alice",
+      "lastName": "Smith"
+    }
+  ],
+  "pageable": { /* pageable metadata */ },
+  "totalElements": 10,
+  "totalPages": 1,
+  "size": 10,
+  "number": 0
+}
+```
+
+Schema for `TeacherDto`:
+```json
+{
+  "uuid": "uuid-string",    // UUID
+  "emailId": 123,            // Long (ID of Email entity)
+  "firstName": "string",
+  "lastName": "string"
+}
+```
+
+#### `GET /api/teachers/{uuid}`
+
+Description: Get a single teacher by UUID.
+
+Authorization: Bearer <token>
+
+Roles: ADMIN, STUDENT
+
+Response JSON (`TeacherDto`):
+```json
+{
+  "uuid": "550e8400-e29b-41d4-a716-446655440000",
+  "emailId": 123,
+  "firstName": "Alice",
+  "lastName": "Smith"
+}
+```
+Errors:
+- **404 Not Found** — when teacher with given UUID does not exist
+- **401 / 403** — as with other protected endpoints
+
+#### `POST /api/teachers`
+
+Description: Create a new teacher.
+
+Authorization: Bearer <token>
+
+Roles: ADMIN only
+
+Request JSON (`CreateTeacherRequestDto`):
+```json
+{
+  "email": "teacher@example.com",  // required, not blank
+  "firstName": "John",
+  "lastName": "Doe"
+}
+```
+Notes:
+- If the provided email value does not exist in the `emails` table, the
+  application will create an `Email` record and associate it with the new
+  Teacher.
+
+Response JSON (`TeacherDto`):
+```json
+{
+  "uuid": "550e8400-e29b-41d4-a716-446655440000",
+  "emailId": 456,
+  "firstName": "John",
+  "lastName": "Doe"
+}
+```
+Errors:
+- **400 Bad Request** — on validation errors (e.g. missing/blank email)
+- **401 / 403** — as above
+
+#### `PUT /api/teachers/{uuid}`
+
+Description: Update an existing teacher.
+
+Authorization: Bearer <token>
+
+Roles: ADMIN only
+
+Request JSON (`UpdateTeacherRequestDto`) — fields are optional and will be
+applied if present:
+```json
+{
+  "email": "new-email@example.com",
+  "firstName": "NewFirst",
+  "lastName": "NewLast"
+}
+```
+Notes:
+- If `email` is provided and does not exist in the `emails` table, a new
+  `Email` record will be created and associated with the teacher.
+
+Response JSON (`TeacherDto`): updated teacher representation
+
+#### `DELETE /api/teachers/{uuid}`
+
+Description: Delete (soft-delete) a teacher by UUID.
+
+Authorization: Bearer <token>
+
+Roles: ADMIN only
+
+Response JSON (`TeacherDto`): representation of the deleted teacher
+
+Errors common to teacher endpoints:
+- **401 Unauthorized** — when token is missing or invalid
+- **403 Forbidden** — when authenticated user does not have required role
+- **404 Not Found** — when resource (teacher) does not exist
+
+### 4) :books: Subject management
+
+The project exposes REST endpoints to manage Subject entities ("przedmioty").
+Subjects are identified by a numeric ID and typically contain a name and an
+optional description.
+
+All subject endpoints require a valid bearer token. Role requirements are
+noted per endpoint.
+
+#### `GET /api/subjects`
+
+Description: Retrieve a paginated list of subjects.
+
+Authorization: Bearer <token>
+
+Roles: ADMIN only
+
+Query parameters (optional):
+- `page` (int) — page index, 0-based
+- `size` (int) — page size
+- `sort` (String) — sort specification
+
+Response JSON (`Page<SubjectDto>`):
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "name": "Mathematics",
+      "description": "Basic mathematics"
+    }
+  ],
+  "pageable": { /* pageable metadata */ },
+  "totalElements": 10,
+  "totalPages": 1,
+  "size": 10,
+  "number": 0
+}
+```
+
+Schema for `SubjectDto`:
+```json
+{
+  "id": 1,           // Long
+  "name": "string",
+  "description": "string"
+}
+```
+
+#### `GET /api/subjects/{id}`
+
+Description: Get a single subject by numeric ID.
+
+Authorization: Bearer <token>
+
+Roles: ADMIN, STUDENT
+
+Response JSON (`SubjectDto`):
+```json
+{
+  "id": 1,
+  "name": "Mathematics",
+  "description": "Basic mathematics"
+}
+```
+Errors:
+- **404 Not Found** — when subject with given ID does not exist
+- **401 / 403** — as with other protected endpoints
+
+#### `POST /api/subjects`
+
+Description: Create a new subject.
+
+Authorization: Bearer <token>
+
+Roles: ADMIN only
+
+Request JSON (`CreateSubjectRequestDto`):
+```json
+{
+  "name": "Mathematics",   // required, not blank
+  "description": "Basic mathematics"
+}
+```
+
+Response JSON (`SubjectDto`):
+```json
+{
+  "id": 42,
+  "name": "Mathematics",
+  "description": "Basic mathematics"
+}
+```
+Errors:
+- **400 Bad Request** — on validation errors (e.g. missing/blank name)
+- **401 / 403** — as above
+
+#### `PUT /api/subjects/{id}`
+
+Description: Update an existing subject.
+
+Authorization: Bearer <token>
+
+Roles: ADMIN only
+
+Request JSON (`UpdateSubjectRequestDto`) — fields are optional and will be
+applied if present:
+```json
+{
+  "name": "Advanced Math",
+  "description": "Covers algebra and calculus"
+}
+```
+
+Response JSON (`SubjectDto`): updated subject representation
+
+#### `DELETE /api/subjects/{id}`
+
+Description: Delete (soft-delete) a subject by ID.
+
+Authorization: Bearer <token>
+
+Roles: ADMIN only
+
+Response JSON (`SubjectDto`): representation of the deleted subject
+
+Errors common to subject endpoints:
+- **401 Unauthorized** — when token is missing or invalid
+- **403 Forbidden** — when authenticated user does not have required role
+- **404 Not Found** — when resource (subject) does not exist
+
 ## :magic_wand: MagicLink & MagicToken Mechanism
 
 The platform supports a **passwordless login flow** using MagicLinks and MagicTokens. This mechanism
@@ -173,11 +448,11 @@ magic-link.paramName=token            # Query parameter name for the token
 
 ## Email delivery logging, MailHog (local testing) & Login notifications
 
-Recent changes introduce email delivery logging and support for local email capture using MailHog. The application now records each attempted email delivery and persists a delivery log with status tracking.
+Recent changes introduce email delivery logging and support for local email capture using MailHog. The application now records each attempted email delivery and persists a delivery log with statu[...]
 
 Key points:
 
-- New model: `EmailDeliveryLog` with fields: `recipient` (Email), `subject`, `body` (TEXT), `status` (PENDING/SENT/FAILED), `createdAt`, `errorMessage`, and soft-delete (`isDeleted`). See: `src/main/java/pl/koder95/sbp/backend/model/EmailDeliveryLog.java`.
+- New model: `EmailDeliveryLog` with fields: `recipient` (Email), `subject`, `body` (TEXT), `status` (PENDING/SENT/FAILED), `createdAt`, `errorMessage`, and soft-delete (`isDeleted`). See: `src/m[...]
 - New DTO: `SendEmailRequestDto` (validated recipient, subject, body) and `DeliveryStatus` enum.
 - Repository: `EmailDeliveryLogRepository` added with helper `findByStatus`.
 - Service: `EmailDeliveryService` (interface) and `EmailDeliveryServiceImpl` which:
@@ -189,7 +464,7 @@ Key points:
 
 Sending login notification:
 
-- On successful login the backend triggers a login notification email for the user. This behavior is implemented in `AuthenticationServiceImpl.login` where it calls `EmailDeliveryService.send` with a login notification payload.
+- On successful login the backend triggers a login notification email for the user. This behavior is implemented in `AuthenticationServiceImpl.login` where it calls `EmailDeliveryService.send` wi[...]
 
 MailHog support (docker-compose):
 
@@ -223,7 +498,7 @@ spring.mail.properties.mail.smtp.starttls.enable=false
 
 Database changelog:
 
-- A Liquibase changelog was added to create the `email_delivery_logs` table and the foreign key to the `emails` table. Check the repository's changelog under `src/main/resources/db/changelog` for the exact changeset.
+- A Liquibase changelog was added to create the `email_delivery_logs` table and the foreign key to the `emails` table. Check the repository's changelog under `src/main/resources/db/changelog` for[...]
 
 ## Notes & Validation
 
@@ -252,11 +527,20 @@ curl -X POST "http://localhost:8080/api/auth/login" -H "Content-Type: applicatio
 curl -H "Authorization: Bearer <token>" "http://localhost:8080/api/emails?page=0&size=10"
 ```
 
+### Use token to fetch teachers (ADMIN only)
+```bash
+curl -H "Authorization: Bearer <token>" "http://localhost:8080/api/teachers?page=0&size=10"
+```
+
+### Use token to fetch subjects (ADMIN only)
+```bash
+curl -H "Authorization: Bearer <token>" "http://localhost:8080/api/subjects?page=0&size=10"
+```
+
 ## Further information
 
 - For full API documentation (if enabled) check the project's **OpenAPI/Swagger
   UI** (commonly available at `/swagger-ui.html` or `/swagger-ui/index.html` when
   **springdoc-openapi** is configured) or consult the controller and DTO source
   code in `src/main/java/pl/koder95/sbp/backend`.
-
 
