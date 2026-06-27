@@ -1,0 +1,35 @@
+databaseChangeLog:
+  - changeSet:
+      id: 006-create-time-ranges-table
+      author: Koder95
+      changes:
+        - createTable:
+            tableName: time_ranges
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: start_time
+                  type: time
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: u_times
+              - column:
+                  name: end_time
+                  type: time
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: u_times
+              - column:
+                  name: is_deleted
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

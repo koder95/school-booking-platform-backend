@@ -30,5 +30,7 @@ public class Teacher {
     private Email email;
     private String firstName;
     private String lastName;
+    @OneToOne(mappedBy = "teacher")
+    private Availability availability;
     private boolean isDeleted;
 }

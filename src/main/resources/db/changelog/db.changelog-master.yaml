@@ -11,3 +11,7 @@ databaseChangeLog:
       file: db/changelog/changes/004-create-subjects-table.yml
   - include:
       file: db/changelog/changes/005-create-teachers-table.yml
+  - include:
+      file: db/changelog/changes/006-create-time-ranges-table.yml
+  - include:
+      file: db/changelog/changes/007-create-availabilities-table.yml
