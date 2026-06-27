@@ -1,0 +1,58 @@
+databaseChangeLog:
+  - changeSet:
+      id: 007-create-availabilities-table
+      author: Koder95
+      changes:
+        - createTable:
+            tableName: availabilities
+            columns:
+              - column:
+                  name: teacher_uuid
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    foreignKeyName: fk_availabilities_teacher
+                    reference: teachers(uuid)
+              - column:
+                  name: monday_range_id
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_availabilities_monday
+                    reference: time_ranges(id)
+              - column:
+                  name: tuesday_range_id
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_availabilities_tueday
+                    reference: time_ranges(id)
+              - column:
+                  name: wednesday_range_id
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_availabilities_wednesday
+                    reference: time_ranges(id)
+              - column:
+                  name: thursday_range_id
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_availabilities_thursday
+                    reference: time_ranges(id)
+              - column:
+                  name: friday_range_id
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_availabilities_friday
+                    reference: time_ranges(id)
+              - column:
+                  name: lunch_break_range_id
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_availabilities_lunch_break
+                    reference: time_ranges(id)
+              - column:
+                  name: is_deleted
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false

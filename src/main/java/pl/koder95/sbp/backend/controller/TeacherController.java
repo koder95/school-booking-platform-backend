@@ -12,26 +12,32 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import pl.koder95.sbp.backend.dto.AvailabilityDto;
 import pl.koder95.sbp.backend.dto.CreateTeacherRequestDto;
 import pl.koder95.sbp.backend.dto.TeacherDto;
+import pl.koder95.sbp.backend.dto.TeacherDtoWithoutEmail;
+import pl.koder95.sbp.backend.dto.UpdateAvailabilityRequestDto;
 import pl.koder95.sbp.backend.dto.UpdateTeacherRequestDto;
+import pl.koder95.sbp.backend.service.AvailabilityService;
 import pl.koder95.sbp.backend.service.TeacherService;
 
-@SecurityRequirement(name = "bearer-key")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/teachers")
 @Tag(name = "Teacher management", description = "The endpoint to manage teachers")
 public class TeacherController {
     private final TeacherService teacherService;
+    private final AvailabilityService availabilityService;
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
+    @SecurityRequirement(name = "bearer-key")
     @GetMapping
     @Operation(
             summary = "Get all teachers",
@@ -42,18 +48,28 @@ public class TeacherController {
         return teacherService.getAll(pageable);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
+    @GetMapping("/uuids")
+    @Operation(
+            summary = "Get all teacher's UUIDs",
+            description = "Retrieve a paginated list of teacher's UUIDs. "
+                    + "Only available for public access."
+    )
+    public Page<TeacherDtoWithoutEmail> getAllWithoutEmails(@ParameterObject Pageable pageable) {
+        return teacherService.getAllWithoutEmails(pageable);
+    }
+
     @GetMapping("/{uuid}")
     @Operation(
             summary = "Get teacher by UUID",
             description = "Retrieve a specific teacher by their UUID. "
-                    + "Available for users with ADMIN or STUDENT role."
+                    + "Available for public access."
     )
     public TeacherDto get(@PathVariable UUID uuid) {
         return teacherService.get(uuid);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     @PostMapping
     @Operation(
             summary = "Create a new teacher",
@@ -64,6 +80,7 @@ public class TeacherController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     @PutMapping("/{uuid}")
     @Operation(
             summary = "Update teacher",
@@ -76,6 +93,7 @@ public class TeacherController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     @DeleteMapping("/{uuid}")
     @Operation(
             summary = "Delete teacher",
@@ -84,5 +102,43 @@ public class TeacherController {
     )
     public TeacherDto delete(@PathVariable UUID uuid) {
         return teacherService.delete(uuid);
+    }
+
+    @GetMapping("/{uuid}/availability")
+    @Operation(
+            summary = "Get teacher availability by UUID",
+            description = "Retrieve a specific teacher availability by their UUID. "
+                    + "Available for public access."
+    )
+    public AvailabilityDto getAvailability(@PathVariable UUID uuid) {
+        return availabilityService.getFor(uuid);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
+    @PutMapping("/{uuid}/availability")
+    @Operation(
+            summary = "Set time availability of the teacher",
+            description = "Update time availability of the teacher (by UUID). "
+                    + "Empty values in request are set."
+    )
+    public AvailabilityDto updateAvailability(
+            @PathVariable UUID uuid, @Valid @RequestBody UpdateAvailabilityRequestDto dto
+    ) {
+        return availabilityService.updateFor(uuid, dto);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
+    @PatchMapping("/{uuid}/availability")
+    @Operation(
+            summary = "Add time availability to the teacher",
+            description = "Update time availability of the teacher (by UUID). "
+                    + "Empty values in request are ignored."
+    )
+    public AvailabilityDto addAvailability(
+            @PathVariable UUID uuid, @Valid @RequestBody UpdateAvailabilityRequestDto dto
+    ) {
+        return availabilityService.updateFor(uuid, dto, true);
     }
 }

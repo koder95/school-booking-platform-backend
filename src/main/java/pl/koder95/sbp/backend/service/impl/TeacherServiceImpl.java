@@ -5,14 +5,22 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pl.koder95.sbp.backend.dto.CreateTeacherRequestDto;
+import pl.koder95.sbp.backend.dto.EmailValueDto;
 import pl.koder95.sbp.backend.dto.TeacherDto;
+import pl.koder95.sbp.backend.dto.TeacherDtoWithoutEmail;
 import pl.koder95.sbp.backend.dto.UpdateTeacherRequestDto;
+import pl.koder95.sbp.backend.exception.EmailAlreadyExistsException;
+import pl.koder95.sbp.backend.exception.EntityNotFoundException;
+import pl.koder95.sbp.backend.exception.InvalidEmailValueException;
+import pl.koder95.sbp.backend.mapper.EmailMapper;
 import pl.koder95.sbp.backend.mapper.TeacherMapper;
 import pl.koder95.sbp.backend.model.Email;
 import pl.koder95.sbp.backend.model.Teacher;
-import pl.koder95.sbp.backend.repository.EmailRepository;
 import pl.koder95.sbp.backend.repository.TeacherRepository;
+import pl.koder95.sbp.backend.service.AvailabilityService;
+import pl.koder95.sbp.backend.service.EmailService;
 import pl.koder95.sbp.backend.service.TeacherService;
 
 @Service
@@ -20,7 +28,9 @@ import pl.koder95.sbp.backend.service.TeacherService;
 public class TeacherServiceImpl implements TeacherService {
     private final TeacherRepository repository;
     private final TeacherMapper mapper;
-    private final EmailRepository emailRepository;
+    private final EmailMapper emailMapper;
+    private final EmailService emailService;
+    private final AvailabilityService availabilityService;
 
     @Override
     public TeacherDto get(UUID uuid) {
@@ -33,17 +43,18 @@ public class TeacherServiceImpl implements TeacherService {
     }
 
     @Override
+    public Page<TeacherDtoWithoutEmail> getAllWithoutEmails(Pageable pageable) {
+        return repository.findAll(pageable).map(mapper::toResponseDtoWithoutEmail);
+    }
+
+    @Override
+    @Transactional
     public TeacherDto create(CreateTeacherRequestDto requestDto) {
         Teacher model = mapper.toModel(requestDto);
-        if (requestDto.email() != null) {
-            Email email = emailRepository.findByValue(requestDto.email()).orElseGet(() -> {
-                Email created = new Email();
-                created.setValue(requestDto.email());
-                return emailRepository.save(created);
-            });
-            model.setEmail(email);
-        }
-        return mapper.toResponseDto(repository.save(model));
+        updateEmail(requestDto.email(), model);
+        TeacherDto responseDto = mapper.toResponseDto(repository.save(model));
+        availabilityService.createEmptyFor(responseDto.uuid());
+        return responseDto;
     }
 
     @Override
@@ -51,20 +62,31 @@ public class TeacherServiceImpl implements TeacherService {
         Teacher model = repository.findById(uuid).orElseThrow();
         mapper.updateModel(model, requestDto);
         if (requestDto.email() != null) {
-            Email email = emailRepository.findByValue(requestDto.email()).orElseGet(() -> {
-                Email created = new Email();
-                created.setValue(requestDto.email());
-                return emailRepository.save(created);
-            });
-            model.setEmail(email);
+            updateEmail(requestDto.email(), model);
         }
         model = repository.save(model);
         return mapper.toResponseDto(model);
     }
 
+    private void updateEmail(String requestDto, Teacher model) {
+        Email email;
+        try {
+            email = emailMapper.toModel(emailService.findByValue(requestDto));
+        } catch (EntityNotFoundException e) {
+            try {
+                email = emailMapper.toModel(emailService.register(new EmailValueDto(requestDto)));
+            } catch (EmailAlreadyExistsException | InvalidEmailValueException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
+        model.setEmail(email);
+    }
+
     @Override
+    @Transactional
     public TeacherDto delete(UUID uuid) {
         Teacher teacher = repository.findById(uuid).orElseThrow();
+        availabilityService.deleteFor(uuid);
         repository.delete(teacher);
         return mapper.toResponseDto(teacher);
     }

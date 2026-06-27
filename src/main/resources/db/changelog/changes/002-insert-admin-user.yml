@@ -7,9 +7,6 @@ databaseChangeLog:
             tableName: emails
             columns:
                 - column:
-                    name: "id"
-                    value: 1
-                - column:
                     name: "value"
                     value: "admin@example.com"
                 - column:
@@ -18,9 +15,6 @@ databaseChangeLog:
         - insert:
             tableName: users
             columns:
-                - column:
-                    name: "id"
-                    value: 1
                 - column:
                     name: "email_id"
                     value: 1
@@ -33,3 +27,4 @@ databaseChangeLog:
                 - column:
                     name: "is_deleted"
                     valueBoolean: false
+        -
