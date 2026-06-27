@@ -1,6 +1,9 @@
 package pl.koder95.sbp.backend.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
 public record UpdateTeacherRequestDto(
-        String email, String firstName, String lastName
+        @NotBlank @Email String email, String firstName, String lastName
 ) {
 }

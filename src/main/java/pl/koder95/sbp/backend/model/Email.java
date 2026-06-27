@@ -23,6 +23,5 @@ public class Email {
     private Long id;
     @Column(name = "value", nullable = false, unique = true)
     private String value;
-    @Column(name = "is_deleted", nullable = false)
-    private Boolean isDeleted;
+    private boolean isDeleted;
 }

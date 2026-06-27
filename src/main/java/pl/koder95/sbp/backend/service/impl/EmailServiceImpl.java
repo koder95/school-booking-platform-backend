@@ -22,7 +22,13 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public EmailDto register(EmailValueDto dto)
             throws EmailAlreadyExistsException, InvalidEmailValueException {
-        throw new UnsupportedOperationException("Not implemented yet");
+        if (emailRepository.existsByValue(dto.value())) {
+            throw new EmailAlreadyExistsException("Email already exists");
+        }
+        if (dto.value() == null || !dto.value().contains("@")) {
+            throw new InvalidEmailValueException("Invalid email value");
+        }
+        return emailMapper.toResponseDto(emailRepository.save(emailMapper.toModel(dto)));
     }
 
     @Override
@@ -39,7 +45,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public void deleteById(Long id) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        emailRepository.deleteById(id);
     }
 
     @Override

@@ -20,10 +20,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pl.koder95.sbp.backend.dto.CreateTeacherRequestDto;
 import pl.koder95.sbp.backend.dto.TeacherDto;
+import pl.koder95.sbp.backend.dto.TeacherDtoWithoutEmail;
 import pl.koder95.sbp.backend.dto.UpdateTeacherRequestDto;
 import pl.koder95.sbp.backend.service.TeacherService;
 
-@SecurityRequirement(name = "bearer-key")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/teachers")
@@ -31,7 +31,8 @@ import pl.koder95.sbp.backend.service.TeacherService;
 public class TeacherController {
     private final TeacherService teacherService;
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
+    @SecurityRequirement(name = "bearer-key")
     @GetMapping
     @Operation(
             summary = "Get all teachers",
@@ -42,18 +43,28 @@ public class TeacherController {
         return teacherService.getAll(pageable);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
+    @GetMapping("/uuids")
+    @Operation(
+            summary = "Get all teacher's UUIDs",
+            description = "Retrieve a paginated list of teacher's UUIDs. "
+                    + "Only available for public access."
+    )
+    public Page<TeacherDtoWithoutEmail> getAllWithoutEmails(@ParameterObject Pageable pageable) {
+        return teacherService.getAllWithoutEmails(pageable);
+    }
+
     @GetMapping("/{uuid}")
     @Operation(
             summary = "Get teacher by UUID",
             description = "Retrieve a specific teacher by their UUID. "
-                    + "Available for users with ADMIN or STUDENT role."
+                    + "Available for public access."
     )
     public TeacherDto get(@PathVariable UUID uuid) {
         return teacherService.get(uuid);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     @PostMapping
     @Operation(
             summary = "Create a new teacher",
@@ -64,6 +75,7 @@ public class TeacherController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     @PutMapping("/{uuid}")
     @Operation(
             summary = "Update teacher",
@@ -76,6 +88,7 @@ public class TeacherController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     @DeleteMapping("/{uuid}")
     @Operation(
             summary = "Delete teacher",
