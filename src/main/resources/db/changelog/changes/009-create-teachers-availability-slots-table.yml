@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 009-create-teachers-availability-slots-table
+      author: Koder95
+      changes:
+        - createTable:
+            tableName: teachers_availability_slots
+            columns:
+              - column:
+                  name: teacher_uuid
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_tas_teacher
+                    references: teachers(uuid)
+              - column:
+                  name: availability_slot_uuid
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_tas_availability_slot
+                    references: availability_slots(uuid)
+        - addPrimaryKey:
+            tableName: teachers_availability_slots
+            columnNames: teacher_uuid, availability_slot_uuid

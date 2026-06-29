@@ -5,8 +5,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.util.Set;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -32,5 +35,12 @@ public class Teacher {
     private String lastName;
     @OneToOne(mappedBy = "teacher")
     private Availability availability;
+    @ManyToMany
+    @JoinTable(
+            name = "teachers_availability_slots",
+            joinColumns = @JoinColumn(name = "teacher_uuid"),
+            inverseJoinColumns = @JoinColumn(name = "availability_slot_uuid")
+    )
+    private Set<AvailabilitySlot> availabilitySlots;
     private boolean isDeleted;
 }
