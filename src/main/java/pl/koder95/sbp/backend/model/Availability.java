@@ -19,7 +19,7 @@ import org.hibernate.annotations.SQLRestriction;
 @Setter
 @NoArgsConstructor
 @Table(name = "availabilities")
-@SQLDelete(sql = "UPDATE availabilities SET is_deleted = true WHERE id = ?")
+@SQLDelete(sql = "UPDATE availabilities SET is_deleted = true WHERE uuid = ?")
 @SQLRestriction("is_deleted = false")
 public class Availability {
     @Id
