@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.time.Period;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -20,12 +21,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pl.koder95.sbp.backend.dto.AvailabilityDto;
+import pl.koder95.sbp.backend.dto.AvailabilitySlotDto;
 import pl.koder95.sbp.backend.dto.CreateTeacherRequestDto;
 import pl.koder95.sbp.backend.dto.TeacherDto;
 import pl.koder95.sbp.backend.dto.TeacherDtoWithoutEmail;
 import pl.koder95.sbp.backend.dto.UpdateAvailabilityRequestDto;
 import pl.koder95.sbp.backend.dto.UpdateTeacherRequestDto;
 import pl.koder95.sbp.backend.service.AvailabilityService;
+import pl.koder95.sbp.backend.service.AvailabilitySlotService;
 import pl.koder95.sbp.backend.service.TeacherService;
 
 @RestController
@@ -35,6 +38,7 @@ import pl.koder95.sbp.backend.service.TeacherService;
 public class TeacherController {
     private final TeacherService teacherService;
     private final AvailabilityService availabilityService;
+    private final AvailabilitySlotService availabilitySlotService;
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @SecurityRequirement(name = "bearer-key")
@@ -140,5 +144,21 @@ public class TeacherController {
             @PathVariable UUID teacherUuid, @Valid @RequestBody UpdateAvailabilityRequestDto dto
     ) {
         return availabilityService.updateFor(teacherUuid, dto, true);
+    }
+
+    @GetMapping("/{teacherUuid}/availability/slots")
+    public Page<AvailabilitySlotDto> getAllAvailabilitySlots(
+            @PathVariable UUID teacherUuid, @ParameterObject Pageable pageable
+    ) {
+        return availabilitySlotService.getAllFor(teacherUuid, pageable);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
+    @PostMapping("/{teacherUuid}/availability/slots")
+    public Page<AvailabilitySlotDto> generateAvailabilitySlots(
+            @PathVariable UUID teacherUuid, @ParameterObject Pageable pageable
+    ) {
+        return availabilitySlotService.createOrGetFor(teacherUuid, Period.ofWeeks(1), pageable);
     }
 }
