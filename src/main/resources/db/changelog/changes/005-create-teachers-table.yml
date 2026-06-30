@@ -27,6 +27,9 @@ databaseChangeLog:
                     foreignKeyName: fk_teachers_email_id
                     references: emails(id)
               - column:
+                  name: zone_id
+                  type: varchar(64)
+              - column:
                   name: is_deleted
                   type: boolean
                   defaultValueBoolean: false

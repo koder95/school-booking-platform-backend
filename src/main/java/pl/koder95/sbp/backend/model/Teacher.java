@@ -1,5 +1,6 @@
 package pl.koder95.sbp.backend.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -9,6 +10,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import java.time.ZoneId;
 import java.util.Set;
 import java.util.UUID;
 import lombok.Getter;
@@ -42,5 +44,7 @@ public class Teacher {
             inverseJoinColumns = @JoinColumn(name = "availability_slot_uuid")
     )
     private Set<AvailabilitySlot> availabilitySlots;
+    @Column(nullable = false, length = 64)
+    private ZoneId zoneId = ZoneId.systemDefault();
     private boolean isDeleted;
 }
