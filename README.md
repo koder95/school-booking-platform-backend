@@ -236,6 +236,58 @@ Errors common to teacher endpoints:
 - **403 Forbidden** — when authenticated user does not have required role
 - **404 Not Found** — when resource (teacher) does not exist
 
+#### Generate availability slots for a new teacher
+
+Use this flow when an admin creates a teacher and wants to generate
+availability slots for the next week.
+
+![Admin flow for generating John Smith availability slots](media/admin-generate-john-smith-slots-flow-en.png)
+
+1. **Log in as an admin** and copy the returned JWT token.
+
+```bash
+curl -X POST "http://localhost:8080/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"admin@example.com\",\"password\":\"secret\"}"
+```
+
+2. **Create the teacher** and copy the `uuid` from the response.
+
+```bash
+curl -X POST "http://localhost:8080/api/teachers" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"john.smith@example.com\",\"firstName\":\"John\",\"lastName\":\"Smith\"}"
+```
+
+3. **Set the teacher's weekly availability.**
+
+```bash
+curl -X PUT "http://localhost:8080/api/teachers/<teacher-uuid>/availability" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d "{\"monday\":{\"startTime\":\"09:00:00\",\"endTime\":\"15:00:00\"},\"tuesday\":{\"startTime\":\"09:00:00\",\"endTime\":\"15:00:00\"},\"wednesday\":{\"startTime\":\"09:00:00\",\"endTime\":\"15:00:00\"},\"thursday\":{\"startTime\":\"09:00:00\",\"endTime\":\"15:00:00\"},\"friday\":{\"startTime\":\"09:00:00\",\"endTime\":\"13:00:00\"},\"lunchBreak\":{\"startTime\":\"12:00:00\",\"endTime\":\"12:30:00\"}}"
+```
+
+4. **Generate slots for the teacher.**
+
+```bash
+curl -X POST "http://localhost:8080/api/teachers/<teacher-uuid>/availability/slots?page=0&size=50" \
+  -H "Authorization: Bearer <token>"
+```
+
+5. **Verify the generated slots.**
+
+```bash
+curl -H "Authorization: Bearer <token>" \
+  "http://localhost:8080/api/teachers/<teacher-uuid>/availability/slots?page=0&size=50"
+```
+
+Notes:
+- Slot generation creates missing slots for the next week.
+- Re-running the endpoint should return existing teacher/timestamp slots instead of duplicating them.
+- Availability timestamps use the teacher's configured time zone.
+
 ### 4) :books: Subject management
 
 The project exposes REST endpoints to manage Subject entities ("przedmioty").
