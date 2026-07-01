@@ -8,12 +8,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Setter
 @Getter
+@Accessors(chain = true)
 @Table(name = "emails")
 @SQLDelete(sql = "UPDATE emails SET is_deleted = true WHERE id = ?")
 @SQLRestriction("is_deleted = false")

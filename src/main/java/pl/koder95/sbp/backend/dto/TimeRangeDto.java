@@ -1,9 +1,9 @@
 package pl.koder95.sbp.backend.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalTime;
 
 public record TimeRangeDto(
-        @NotBlank LocalTime startTime, @NotBlank LocalTime endTime
+        @NotNull LocalTime startTime, @NotNull LocalTime endTime
 ) {
 }

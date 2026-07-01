@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.time.Period;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -20,12 +21,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pl.koder95.sbp.backend.dto.AvailabilityDto;
+import pl.koder95.sbp.backend.dto.AvailabilitySlotDto;
 import pl.koder95.sbp.backend.dto.CreateTeacherRequestDto;
 import pl.koder95.sbp.backend.dto.TeacherDto;
 import pl.koder95.sbp.backend.dto.TeacherDtoWithoutEmail;
 import pl.koder95.sbp.backend.dto.UpdateAvailabilityRequestDto;
 import pl.koder95.sbp.backend.dto.UpdateTeacherRequestDto;
 import pl.koder95.sbp.backend.service.AvailabilityService;
+import pl.koder95.sbp.backend.service.AvailabilitySlotService;
 import pl.koder95.sbp.backend.service.TeacherService;
 
 @RestController
@@ -35,6 +38,7 @@ import pl.koder95.sbp.backend.service.TeacherService;
 public class TeacherController {
     private final TeacherService teacherService;
     private final AvailabilityService availabilityService;
+    private final AvailabilitySlotService availabilitySlotService;
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @SecurityRequirement(name = "bearer-key")
@@ -58,14 +62,14 @@ public class TeacherController {
         return teacherService.getAllWithoutEmails(pageable);
     }
 
-    @GetMapping("/{uuid}")
+    @GetMapping("/{teacherUuid}")
     @Operation(
             summary = "Get teacher by UUID",
             description = "Retrieve a specific teacher by their UUID. "
                     + "Available for public access."
     )
-    public TeacherDto get(@PathVariable UUID uuid) {
-        return teacherService.get(uuid);
+    public TeacherDto get(@PathVariable UUID teacherUuid) {
+        return teacherService.get(teacherUuid);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -81,64 +85,80 @@ public class TeacherController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearer-key")
-    @PutMapping("/{uuid}")
+    @PutMapping("/{teacherUuid}")
     @Operation(
             summary = "Update teacher",
             description = "Update an existing teacher by their UUID. "
                     + "Only available for users with ADMIN role."
     )
-    public TeacherDto update(@PathVariable UUID uuid,
+    public TeacherDto update(@PathVariable UUID teacherUuid,
                              @RequestBody UpdateTeacherRequestDto dto) {
-        return teacherService.update(uuid, dto);
+        return teacherService.update(teacherUuid, dto);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearer-key")
-    @DeleteMapping("/{uuid}")
+    @DeleteMapping("/{teacherUuid}")
     @Operation(
             summary = "Delete teacher",
             description = "Delete a teacher by their UUID. "
                     + "Only available for users with ADMIN role."
     )
-    public TeacherDto delete(@PathVariable UUID uuid) {
-        return teacherService.delete(uuid);
+    public TeacherDto delete(@PathVariable UUID teacherUuid) {
+        return teacherService.delete(teacherUuid);
     }
 
-    @GetMapping("/{uuid}/availability")
+    @GetMapping("/{teacherUuid}/availability")
     @Operation(
             summary = "Get teacher availability by UUID",
             description = "Retrieve a specific teacher availability by their UUID. "
                     + "Available for public access."
     )
-    public AvailabilityDto getAvailability(@PathVariable UUID uuid) {
-        return availabilityService.getFor(uuid);
+    public AvailabilityDto getAvailability(@PathVariable UUID teacherUuid) {
+        return availabilityService.getFor(teacherUuid);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearer-key")
-    @PutMapping("/{uuid}/availability")
+    @PutMapping("/{teacherUuid}/availability")
     @Operation(
             summary = "Set time availability of the teacher",
             description = "Update time availability of the teacher (by UUID). "
                     + "Empty values in request are set."
     )
     public AvailabilityDto updateAvailability(
-            @PathVariable UUID uuid, @Valid @RequestBody UpdateAvailabilityRequestDto dto
+            @PathVariable UUID teacherUuid, @Valid @RequestBody UpdateAvailabilityRequestDto dto
     ) {
-        return availabilityService.updateFor(uuid, dto);
+        return availabilityService.updateFor(teacherUuid, dto);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearer-key")
-    @PatchMapping("/{uuid}/availability")
+    @PatchMapping("/{teacherUuid}/availability")
     @Operation(
             summary = "Add time availability to the teacher",
             description = "Update time availability of the teacher (by UUID). "
                     + "Empty values in request are ignored."
     )
     public AvailabilityDto addAvailability(
-            @PathVariable UUID uuid, @Valid @RequestBody UpdateAvailabilityRequestDto dto
+            @PathVariable UUID teacherUuid, @Valid @RequestBody UpdateAvailabilityRequestDto dto
     ) {
-        return availabilityService.updateFor(uuid, dto, true);
+        return availabilityService.updateFor(teacherUuid, dto, true);
+    }
+
+    @GetMapping("/{teacherUuid}/availability/slots")
+    public Page<AvailabilitySlotDto> getAllAvailabilitySlots(
+            @PathVariable UUID teacherUuid, @ParameterObject Pageable pageable
+    ) {
+        return availabilitySlotService.getAllFor(teacherUuid, pageable);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
+    @PostMapping("/{teacherUuid}/availability/slots")
+    public Page<AvailabilitySlotDto> generateAvailabilitySlots(
+            @PathVariable UUID teacherUuid, @ParameterObject Pageable pageable
+    ) {
+        return availabilitySlotService.createOrGetFor(teacherUuid, Period.ofWeeks(1), pageable);
     }
 }
