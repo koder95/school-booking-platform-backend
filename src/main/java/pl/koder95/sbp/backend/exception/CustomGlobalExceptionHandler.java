@@ -6,6 +6,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -54,6 +57,27 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
     protected ResponseEntity<Object> handleEntityNotFoundException(
             EntityNotFoundException ex, HttpServletRequest request) {
         HttpStatus status = HttpStatus.NOT_FOUND;
+        return createUniversalErrorMessageFormat(request, status, List.of(ex.getMessage()));
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    protected ResponseEntity<Object> handleBadCredentialsException(
+            BadCredentialsException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        return createUniversalErrorMessageFormat(request, status, List.of(ex.getMessage()));
+    }
+
+    @ExceptionHandler(LockedException.class)
+    protected ResponseEntity<Object> handleLockedException(
+            LockedException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        return createUniversalErrorMessageFormat(request, status, List.of(ex.getMessage()));
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    protected ResponseEntity<Object> handleDisabledException(
+            DisabledException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
         return createUniversalErrorMessageFormat(request, status, List.of(ex.getMessage()));
     }
 
