@@ -2,15 +2,12 @@ package pl.koder95.sbp.backend.dto;
 
 import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.NotNull;
-import java.time.ZonedDateTime;
 import java.util.UUID;
 
 public record CreateLessonRequestDto(
         @NotNull UUID availabilitySlotUuid,
         @NotNull UUID teacherUuid,
         @NotNull Long subjectId,
-        @NotNull ZonedDateTime startTime,
-        @NotNull ZonedDateTime closingTime,
         Integer maxEnrolled
 ) {
     public CreateLessonRequestDto {

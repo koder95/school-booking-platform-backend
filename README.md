@@ -7,6 +7,17 @@ schemas used by the API.
 
 :globe_with_meridians: Standard port: **8080**
 
+> [!CAUTION]
+> This project is a work in progress. The API may change and is not yet stable.
+> We recommend rebuilding the docker image and checking the README for updates
+> before using it in production.
+
+> [!TIP]
+> This version is not stable and so you may crush with the database. If you want to reset the database, you can use the following command:
+> ```bash
+> docker-compose down -v && docker-compose up -d
+> ```
+
 ## :shield: Authentication
 
 - The service uses **JWT bearer tokens**.

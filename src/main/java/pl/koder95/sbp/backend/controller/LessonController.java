@@ -1,19 +1,26 @@
 package pl.koder95.sbp.backend.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import pl.koder95.sbp.backend.dto.CreateLessonRequestDto;
 import pl.koder95.sbp.backend.dto.LessonDto;
 import pl.koder95.sbp.backend.dto.UpdateLessonRequestDto;
-import pl.koder95.sbp.backend.service.AvailabilitySlotService;
 import pl.koder95.sbp.backend.service.LessonService;
-import pl.koder95.sbp.backend.service.TeacherService;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,15 +28,15 @@ import pl.koder95.sbp.backend.service.TeacherService;
 @Tag(name = "Lesson management", description = "The endpoint to manage lessons")
 public class LessonController {
     private final LessonService lessonService;
-    private final TeacherService teacherService;
-    private final AvailabilitySlotService availabilitySlotService;
 
     @GetMapping
-    public Page<LessonDto> getAll(Pageable pageable) {
+    @Operation(summary = "Get all lessons", description = "Get all lessons with pagination")
+    public Page<LessonDto> getAll(@ParameterObject Pageable pageable) {
         return lessonService.findAll(pageable);
     }
 
     @GetMapping("/{lessonUuid}")
+    @Operation(summary = "Get lesson by UUID", description = "Get a specific lesson by its UUID")
     public LessonDto getByUuid(@PathVariable UUID lessonUuid) {
         return lessonService.getByUuid(lessonUuid);
     }
@@ -37,6 +44,7 @@ public class LessonController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearer-key")
+    @Operation(summary = "Create lesson", description = "Create a new lesson")
     public LessonDto create(@RequestBody CreateLessonRequestDto requestDto) {
         return lessonService.create(requestDto);
     }
@@ -44,6 +52,7 @@ public class LessonController {
     @PutMapping("/{lessonUuid}")
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearer-key")
+    @Operation(summary = "Update lesson", description = "Update an existing lesson")
     public LessonDto update(@PathVariable UUID lessonUuid,
                             @RequestBody UpdateLessonRequestDto requestDto) {
         return lessonService.update(lessonUuid, requestDto);
@@ -52,6 +61,7 @@ public class LessonController {
     @DeleteMapping("/{lessonUuid}")
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearer-key")
+    @Operation(summary = "Delete lesson", description = "Delete an existing lesson")
     public LessonDto delete(@PathVariable UUID lessonUuid) {
         return lessonService.deleteById(lessonUuid);
     }
