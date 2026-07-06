@@ -7,7 +7,6 @@ import java.util.UUID;
 public record CreateLessonRequestDto(
         @NotNull UUID availabilitySlotUuid,
         @NotNull UUID teacherUuid,
-        @NotNull Long subjectId,
         Integer maxEnrolled
 ) {
     public CreateLessonRequestDto {

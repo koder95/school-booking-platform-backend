@@ -19,8 +19,8 @@ public interface LessonMapper {
             + ".findById(dto.availabilitySlotUuid()).orElseThrow().getUuid())")
     @Mapping(target = "assigned", expression = "java(teacherRepository"
             + ".findById(dto.teacherUuid()).orElseThrow())")
-    @Mapping(target = "subject", expression = "java(subjectRepository"
-            + ".findById(dto.subjectId()).orElseThrow())")
+    @Mapping(target = "subject", expression = "java(teacherRepository"
+            + ".findById(dto.teacherUuid()).orElseThrow().getSubject())")
     @Mapping(target = "createdAt", expression = "java(java.time.ZonedDateTime.now())")
     @Mapping(target = "startTime", expression = "java(availabilitySlotRepository"
             + ".findById(dto.availabilitySlotUuid()).orElseThrow().getTimestamp())")
@@ -37,10 +37,6 @@ public interface LessonMapper {
     @Mapping(target = "teacherUuid", source = "assigned.uuid")
     LessonDto toDto(Lesson model);
 
-    @Mapping(target = "assigned", expression = "java(teacherRepository"
-            + ".findById(dto.teacherUuid()).orElseThrow())")
-    @Mapping(target = "subject", expression = "java(subjectRepository"
-            + ".findById(dto.subjectId()).orElseThrow())")
     @Mapping(target = "maxEnrolled", expression = "java(dto.maxEnrolled())")
     void updateModel(@MappingTarget Lesson lesson, UpdateLessonRequestDto dto,
                      @Context TeacherRepository teacherRepository,

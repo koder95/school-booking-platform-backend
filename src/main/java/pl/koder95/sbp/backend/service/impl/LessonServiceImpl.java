@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pl.koder95.sbp.backend.dto.CreateLessonRequestDto;
 import pl.koder95.sbp.backend.dto.LessonDto;
 import pl.koder95.sbp.backend.dto.UpdateLessonRequestDto;
@@ -27,10 +28,13 @@ public class LessonServiceImpl implements LessonService {
     private final SubjectRepository subjectRepository;
 
     @Override
+    @Transactional
     public LessonDto create(CreateLessonRequestDto requestDto) {
-        return mapper.toDto(repository.save(mapper.toModel(
+        Lesson saved = repository.save(mapper.toModel(
                 requestDto, availabilitySlotRepository, teacherRepository, subjectRepository
-        )));
+        ));
+        availabilitySlotRepository.deleteById(requestDto.availabilitySlotUuid());
+        return mapper.toDto(saved);
     }
 
     @Override

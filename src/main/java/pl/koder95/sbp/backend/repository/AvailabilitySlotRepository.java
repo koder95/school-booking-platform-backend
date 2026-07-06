@@ -61,4 +61,6 @@ public interface AvailabilitySlotRepository extends JpaRepository<AvailabilitySl
     boolean existsByTimestamp(ZonedDateTime timestamp);
 
     Optional<AvailabilitySlot> findByTimestamp(ZonedDateTime timestamp);
+
+    void deleteByTimestampBefore(ZonedDateTime timestamp);
 }
