@@ -80,6 +80,7 @@ public class AvailabilitySlotServiceImpl implements AvailabilitySlotService {
 
     @Override
     public List<AvailabilitySlotDto> getAllFor(UUID teacherUuid) {
+        clearOld();
         Teacher teacher = teacherRepository.findById(teacherUuid).orElseThrow();
         return repository.findAllByTeacher(teacher).stream()
                 .map(mapper::toDto)
@@ -88,6 +89,7 @@ public class AvailabilitySlotServiceImpl implements AvailabilitySlotService {
 
     @Override
     public Page<AvailabilitySlotDto> getAllFor(UUID teacherUuid, Pageable pageable) {
+        clearOld();
         Teacher teacher = teacherRepository.findById(teacherUuid).orElseThrow();
         return repository.findAllByTeacher(teacher, pageable)
                 .map(mapper::toDto);
@@ -109,5 +111,9 @@ public class AvailabilitySlotServiceImpl implements AvailabilitySlotService {
         Page<AvailabilitySlot> slots = repository.findAllByTeacher(teacher, pageable);
         slots.forEach(slot -> repository.save(slot.removeTeacher(teacher)));
         return slots.map(mapper::toDto);
+    }
+
+    private void clearOld() {
+        repository.deleteByTimestampBefore(ZonedDateTime.now());
     }
 }

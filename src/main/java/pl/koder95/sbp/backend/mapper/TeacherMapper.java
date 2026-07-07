@@ -12,20 +12,29 @@ import pl.koder95.sbp.backend.dto.UpdateTeacherRequestDto;
 import pl.koder95.sbp.backend.model.Email;
 import pl.koder95.sbp.backend.model.Teacher;
 import pl.koder95.sbp.backend.repository.EmailRepository;
+import pl.koder95.sbp.backend.repository.SubjectRepository;
 
 @Mapper(config = MapperConfig.class)
 public interface TeacherMapper {
     @Mapping(target = "email", source = "email")
-    Teacher toModel(CreateTeacherRequestDto dto, @Context EmailRepository repository);
+    @Mapping(target = "subject",
+            expression = "java(subjectRepository.findById(dto.subjectId()).orElseThrow())")
+    Teacher toModel(CreateTeacherRequestDto dto,
+                    @Context EmailRepository repository,
+                    @Context SubjectRepository subjectRepository);
 
     @Mapping(target = "emailId", source = "email.id")
+    @Mapping(target = "subjectId", source = "subject.id")
     TeacherDto toResponseDto(Teacher model);
 
     TeacherDtoWithoutEmail toResponseDtoWithoutEmail(Teacher model);
 
     @Mapping(target = "email", source = "email")
+    @Mapping(target = "subject",
+            expression = "java(subjectRepository.findById(dto.subjectId()).orElseThrow())")
     void updateModel(@MappingTarget Teacher model, UpdateTeacherRequestDto dto,
-                     @Context EmailRepository repository);
+                     @Context EmailRepository repository,
+                     @Context SubjectRepository subjectRepository);
 
     default Email mapEmail(String email, @Context EmailRepository repository) {
         return repository.findByValue(email).orElseGet(

@@ -22,7 +22,6 @@ import pl.koder95.sbp.backend.dto.SubjectDto;
 import pl.koder95.sbp.backend.dto.UpdateSubjectRequestDto;
 import pl.koder95.sbp.backend.service.SubjectService;
 
-@SecurityRequirement(name = "bearer-key")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/subjects")
@@ -31,6 +30,7 @@ public class SubjectController {
     private final SubjectService subjectService;
 
     @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     @PostMapping
     @Operation(
             summary = "Create a new subject",
@@ -40,40 +40,38 @@ public class SubjectController {
         return subjectService.create(requestDto);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @GetMapping
     @Operation(
             summary = "Get all subjects",
             description = "Retrieve a paginated list of subjects. "
-                    + "Available for users with ADMIN or STUDENT role."
+                    + "Available for public access."
     )
     public Page<SubjectDto> getAll(@ParameterObject Pageable pageable) {
         return subjectService.getAll(pageable);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @GetMapping("/{name:^(?!^[0-9]+$).+$}")
     @Operation(
             summary = "Get subject by name",
             description = "Retrieve a specific subject by its name. "
-                    + "Available for users with ADMIN or STUDENT role."
+                    + "Available for public access."
     )
     public SubjectDto getByName(@PathVariable String name) {
         return subjectService.getByName(name);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @GetMapping("/{id:[0-9]+}")
     @Operation(
             summary = "Get subject by ID",
             description = "Retrieve a specific subject by its ID. "
-                    + "Available for users with ADMIN or STUDENT role."
+                    + "Available for public access."
     )
     public SubjectDto getOne(@PathVariable Long id) {
         return subjectService.get(id);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     @PutMapping("/{id:[0-9]+}")
     @Operation(
             summary = "Update subject",
@@ -86,6 +84,7 @@ public class SubjectController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     @DeleteMapping("/{id:[0-9]+}")
     @Operation(
             summary = "Delete subject",

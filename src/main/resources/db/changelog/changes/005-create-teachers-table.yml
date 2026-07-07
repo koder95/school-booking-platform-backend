@@ -19,6 +19,13 @@ databaseChangeLog:
                   name: last_name
                   type: varchar(32)
               - column:
+                  name: subject_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_teachers_subject_id
+                    references: subjects(id)
+              - column:
                   name: email_id
                   type: bigint
                   constraints:

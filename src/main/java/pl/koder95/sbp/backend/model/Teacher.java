@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.ZoneId;
@@ -37,6 +38,9 @@ public class Teacher {
     private String lastName;
     @OneToOne(mappedBy = "teacher")
     private Availability availability;
+    @ManyToOne
+    @JoinColumn(nullable = false)
+    private Subject subject;
     @ManyToMany
     @JoinTable(
             name = "teachers_availability_slots",

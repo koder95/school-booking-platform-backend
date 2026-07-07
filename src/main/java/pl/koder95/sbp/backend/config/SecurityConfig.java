@@ -48,9 +48,11 @@ public class SecurityConfig {
                                 "/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET,
+                                "/api/lessons", "/api/lessons/*",
                                 "/api/teachers/*", "/api/teachers/*/availability",
                                 "/api/teachers/*/availability/slots",
-                                "/api/teachers/*/availability/slots/*"
+                                "/api/teachers/*/availability/slots/*",
+                                "/api/subjects", "/api/subjects/*"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -72,6 +74,8 @@ public class SecurityConfig {
         corsConfiguration.addAllowedOrigin(magicLinkConfig.baseUrl());
         corsConfiguration.addAllowedHeader("*");
         corsConfiguration.addAllowedMethod("*");
+        corsConfiguration.addExposedHeader("Authorization");
+        corsConfiguration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", corsConfiguration);
         return source;

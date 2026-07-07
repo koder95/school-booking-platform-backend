@@ -147,6 +147,9 @@ public class TeacherController {
     }
 
     @GetMapping("/{teacherUuid}/availability/slots")
+    @Operation(summary = "Get all availability slots for a teacher",
+            description = "Retrieve a paginated list of availability slots for a specific "
+                    + "teacher by their UUID. Available for public access.")
     public Page<AvailabilitySlotDto> getAllAvailabilitySlots(
             @PathVariable UUID teacherUuid, @ParameterObject Pageable pageable
     ) {
@@ -156,6 +159,11 @@ public class TeacherController {
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearer-key")
     @PostMapping("/{teacherUuid}/availability/slots")
+    @Operation(
+            summary = "Generate availability slots for a teacher",
+            description = "Generate availability slots for a specific teacher by their UUID. "
+                    + "Only available for users with ADMIN role."
+    )
     public Page<AvailabilitySlotDto> generateAvailabilitySlots(
             @PathVariable UUID teacherUuid, @ParameterObject Pageable pageable
     ) {

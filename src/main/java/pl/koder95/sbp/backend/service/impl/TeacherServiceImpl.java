@@ -14,6 +14,7 @@ import pl.koder95.sbp.backend.mapper.TeacherMapper;
 import pl.koder95.sbp.backend.model.Email;
 import pl.koder95.sbp.backend.model.Teacher;
 import pl.koder95.sbp.backend.repository.EmailRepository;
+import pl.koder95.sbp.backend.repository.SubjectRepository;
 import pl.koder95.sbp.backend.repository.TeacherRepository;
 import pl.koder95.sbp.backend.service.AvailabilityService;
 import pl.koder95.sbp.backend.service.TeacherService;
@@ -25,6 +26,7 @@ public class TeacherServiceImpl implements TeacherService {
     private final TeacherMapper mapper;
     private final AvailabilityService availabilityService;
     private final EmailRepository emailRepository;
+    private final SubjectRepository subjectRepository;
 
     @Override
     public TeacherDto get(UUID uuid) {
@@ -44,7 +46,7 @@ public class TeacherServiceImpl implements TeacherService {
     @Override
     @Transactional
     public TeacherDto create(CreateTeacherRequestDto requestDto) {
-        Teacher model = mapper.toModel(requestDto, emailRepository);
+        Teacher model = mapper.toModel(requestDto, emailRepository, subjectRepository);
         TeacherDto responseDto = mapper.toResponseDto(repository.save(model));
         availabilityService.createEmptyFor(responseDto.uuid());
         return responseDto;
@@ -57,6 +59,7 @@ public class TeacherServiceImpl implements TeacherService {
         if (requestDto.email() != null) {
             updateEmail(model, requestDto.email());
         }
+        mapper.updateModel(model, requestDto, emailRepository, subjectRepository);
         model = repository.save(model);
         return mapper.toResponseDto(model);
     }

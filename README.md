@@ -7,11 +7,24 @@ schemas used by the API.
 
 :globe_with_meridians: Standard port: **8080**
 
+> [!CAUTION]
+> This project is a work in progress. The API may change and is not yet stable.
+> We recommend rebuilding the docker image and checking the README for updates
+> before using it in production.
+
+> [!TIP]
+> This version is not stable and so you may crush with the database. If you want to reset the database, you can use the following command:
+> ```bash
+> docker-compose down -v && docker-compose up -d
+> ```
+
 ## :shield: Authentication
 
 - The service uses **JWT bearer tokens**.
 - Obtain a token by calling the login endpoint. Use the returned token as an
   `Authorization: Bearer <token>` header for protected endpoints.
+
+Recent fix: the authentication flow now properly surfaces error messages when authentication fails. The security configuration was also adjusted to ensure unauthenticated GET access to certain endpoints (e.g. lessons listing) while protecting modification endpoints.
 
 ## :door: Endpoints
 
@@ -98,6 +111,8 @@ The project now exposes REST endpoints to manage Teacher entities. Teachers
 have a UUID primary key and are associated one-to-one with an existing `Email`
 entity (referenced by `emailId` in the DB). Teachers support soft-delete.
 
+Teachers are now linked to Subjects (many-to-one). The database schema for the teachers table was updated to include `subject_id` and relevant mappings and DTOs were adjusted.
+
 All teacher endpoints require a valid bearer token. Role requirements are
 noted per endpoint.
 
@@ -122,7 +137,8 @@ Response JSON (`Page<TeacherDto>`):
       "uuid": "550e8400-e29b-41d4-a716-446655440000",
       "emailId": 123,
       "firstName": "Alice",
-      "lastName": "Smith"
+      "lastName": "Smith",
+      "subjectId": 1
     }
   ],
   "pageable": { /* pageable metadata */ },
@@ -139,7 +155,8 @@ Schema for `TeacherDto`:
   "uuid": "uuid-string",    // UUID
   "emailId": 123,            // Long (ID of Email entity)
   "firstName": "string",
-  "lastName": "string"
+  "lastName": "string",
+  "subjectId": 1             // Long (optional)
 }
 ```
 
@@ -157,7 +174,8 @@ Response JSON (`TeacherDto`):
   "uuid": "550e8400-e29b-41d4-a716-446655440000",
   "emailId": 123,
   "firstName": "Alice",
-  "lastName": "Smith"
+  "lastName": "Smith",
+  "subjectId": 1
 }
 ```
 Errors:
@@ -177,7 +195,8 @@ Request JSON (`CreateTeacherRequestDto`):
 {
   "email": "teacher@example.com",  // required, not blank
   "firstName": "John",
-  "lastName": "Doe"
+  "lastName": "Doe",
+  "subjectId": 1
 }
 ```
 Notes:
@@ -191,7 +210,8 @@ Response JSON (`TeacherDto`):
   "uuid": "550e8400-e29b-41d4-a716-446655440000",
   "emailId": 456,
   "firstName": "John",
-  "lastName": "Doe"
+  "lastName": "Doe",
+  "subjectId": 1
 }
 ```
 Errors:
@@ -212,7 +232,8 @@ applied if present:
 {
   "email": "new-email@example.com",
   "firstName": "NewFirst",
-  "lastName": "NewLast"
+  "lastName": "NewLast",
+  "subjectId": 2
 }
 ```
 Notes:
@@ -257,7 +278,7 @@ curl -X POST "http://localhost:8080/api/auth/login" \
 curl -X POST "http://localhost:8080/api/teachers" \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
-  -d "{\"email\":\"john.smith@example.com\",\"firstName\":\"John\",\"lastName\":\"Smith\"}"
+  -d "{\"email\":\"john.smith@example.com\",\"firstName\":\"John\",\"lastName\":\"Smith\",\"subjectId\":1}"
 ```
 
 3. **Set the teacher's weekly availability.**
@@ -266,7 +287,7 @@ curl -X POST "http://localhost:8080/api/teachers" \
 curl -X PUT "http://localhost:8080/api/teachers/<teacher-uuid>/availability" \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
-  -d "{\"monday\":{\"startTime\":\"09:00:00\",\"endTime\":\"15:00:00\"},\"tuesday\":{\"startTime\":\"09:00:00\",\"endTime\":\"15:00:00\"},\"wednesday\":{\"startTime\":\"09:00:00\",\"endTime\":\"15:00:00\"},\"thursday\":{\"startTime\":\"09:00:00\",\"endTime\":\"15:00:00\"},\"friday\":{\"startTime\":\"09:00:00\",\"endTime\":\"13:00:00\"},\"lunchBreak\":{\"startTime\":\"12:00:00\",\"endTime\":\"12:30:00\"}}"
+  -d "{\"monday\":{\"startTime\":\"09:00:00\",\"endTime\":\"15:00:00\"},\"tuesday\":{\"startTime\":\"09:00:00\",\"endTime\":\"15:00:00\"}}"
 ```
 
 4. **Generate slots for the teacher.**
@@ -419,6 +440,55 @@ Errors common to subject endpoints:
 - **403 Forbidden** — when authenticated user does not have required role
 - **404 Not Found** — when resource (subject) does not exist
 
+### 5) :bookmark_tabs: Lessons management
+
+New in this release: full lesson management API. Lessons represent scheduled
+bookings/appointments created by students (consuming availability slots) for a
+specific teacher and subject.
+
+Key notes:
+- Endpoints:
+  - `GET /api/lessons` — list lessons (public, unauthenticated GET allowed)
+  - `GET /api/lessons/{id}` — get single lesson (public)
+  - `POST /api/lessons` — create lesson (requires ADMIN role)
+  - `PUT /api/lessons/{id}` — update lesson (requires ADMIN role)
+  - `DELETE /api/lessons/{id}` — delete lesson (requires ADMIN role)
+- Security: `GET` endpoints for lessons are accessible without authentication; `POST`/`PUT`/`DELETE` require `ADMIN` role. OpenAPI security requirement was added for mutating operations.
+- DTOs added: `CreateLessonRequestDto`, `UpdateLessonRequestDto`, `LessonDto`.
+  - `CreateLessonRequestDto` and `UpdateLessonRequestDto` default `maxEnrolled` to `1` and validate that value is greater than `0`.
+  - `UpdateLessonRequestDto` no longer contains `subjectId` or `teacherUuid` fields (they were removed to simplify updates).
+- Implementation: `Lesson` entity, repository, mapper (`LessonMapper`), and service implementation were added. Liquibase changelog (`010`) creates the lessons table and related constraints.
+- Atomic slot consumption: when creating a lesson the implementation saves the lesson and deletes the associated availability slot (consuming the slot). `LessonServiceImpl.create` is annotated with `@Transactional` to ensure both operations are atomic.
+- Availability cleanup: expired/old availability slots are cleaned up before fetching slots. `AvailabilitySlotRepository.deleteByTimestampBefore(...)` and `AvailabilitySlotServiceImpl.clearOld()` implement this behavior.
+
+Request example (create):
+```json
+{
+  "teacherUuid": "550e8400-e29b-41d4-a716-446655440000",
+  "subjectId": 1,
+  "timestamp": "2026-07-10T10:00:00+02:00",
+  "maxEnrolled": 1
+}
+```
+
+cURL example (list lessons - public):
+```bash
+curl "http://localhost:8080/api/lessons?page=0&size=20"
+```
+
+cURL example (create lesson - ADMIN):
+```bash
+curl -X POST "http://localhost:8080/api/lessons" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"teacherUuid":"550e8400-e29b-41d4-a716-446655440000","subjectId":1,"timestamp":"2026-07-10T10:00:00+02:00","maxEnrolled":1}'
+```
+
+Errors:
+- **400 Bad Request** — validation errors (e.g. maxEnrolled &lt;= 0)
+- **404 Not Found** — referenced teacher/subject/slot not found
+- **401 / 403** — as with other protected endpoints
+
 ## :magic_wand: MagicLink & MagicToken Mechanism
 
 The platform supports a **passwordless login flow** using MagicLinks and MagicTokens. This mechanism
@@ -500,11 +570,11 @@ magic-link.paramName=token            # Query parameter name for the token
 
 ## Email delivery logging, MailHog (local testing) & Login notifications
 
-Recent changes introduce email delivery logging and support for local email capture using MailHog. The application now records each attempted email delivery and persists a delivery log with statu[...]
+Recent changes introduce email delivery logging and support for local email capture using MailHog. The application now records each attempted email delivery and persists a delivery log with status and error information.
 
 Key points:
 
-- New model: `EmailDeliveryLog` with fields: `recipient` (Email), `subject`, `body` (TEXT), `status` (PENDING/SENT/FAILED), `createdAt`, `errorMessage`, and soft-delete (`isDeleted`). See: `src/m[...]
+- New model: `EmailDeliveryLog` with fields: `recipient` (Email), `subject`, `body` (TEXT), `status` (PENDING/SENT/FAILED), `createdAt`, `errorMessage`, and soft-delete (`isDeleted`). See: `src/main/java/...` for details.
 - New DTO: `SendEmailRequestDto` (validated recipient, subject, body) and `DeliveryStatus` enum.
 - Repository: `EmailDeliveryLogRepository` added with helper `findByStatus`.
 - Service: `EmailDeliveryService` (interface) and `EmailDeliveryServiceImpl` which:
@@ -516,12 +586,11 @@ Key points:
 
 Sending login notification:
 
-- On successful login the backend triggers a login notification email for the user. This behavior is implemented in `AuthenticationServiceImpl.login` where it calls `EmailDeliveryService.send` wi[...]
+- On successful login the backend triggers a login notification email for the user.
 
 MailHog support (docker-compose):
 
 - A MailHog service has been added to docker-compose for local development and integration tests. MailHog exposes SMTP on port `1025` and a web UI on port `8025`.
-- The docker-compose service includes a healthcheck and the application is configured to wait for MailHog to be healthy before starting (useful in integration environments).
 
 Example docker-compose snippet (conceptual):
 ```yaml
@@ -548,9 +617,10 @@ spring.mail.properties.mail.smtp.auth=false
 spring.mail.properties.mail.smtp.starttls.enable=false
 ```
 
-Database changelog:
+Database changelogs:
 
-- A Liquibase changelog was added to create the `email_delivery_logs` table and the foreign key to the `emails` table. Check the repository's changelog under `src/main/resources/db/changelog` for[...]
+- A Liquibase changelog was added to create the `email_delivery_logs` table and the foreign key to the `emails` table. Check the repository's changelog under `src/main/resources/db/changelog` for details.
+- New changelog `010` adds the `lessons` table and constraints required for the lessons feature. The teachers table migration was updated to add `subject_id`.
 
 ## Notes & Validation
 
@@ -565,6 +635,10 @@ Database changelog:
 
 - Login uses `UserLoginRequestDto` (see above) and returns `UserLoginResponseDto`
   with a single field `token`.
+
+## CORS & Security
+
+CORS configuration was extended to expose the `Authorization` header and allow credentials where appropriate to support frontend usage with cookies/authorization headers in cross-origin scenarios. Security configuration was also updated to allow unauthenticated GET access to `/api/lessons` and `/api/lessons/*` while protecting mutating endpoints for ADMIN users.
 
 ## Examples (curl)
 
@@ -587,6 +661,19 @@ curl -H "Authorization: Bearer <token>" "http://localhost:8080/api/teachers?page
 ### Use token to fetch subjects (ADMIN only)
 ```bash
 curl -H "Authorization: Bearer <token>" "http://localhost:8080/api/subjects?page=0&size=10"
+```
+
+### List lessons (public)
+```bash
+curl "http://localhost:8080/api/lessons?page=0&size=20"
+```
+
+### Create lesson (ADMIN)
+```bash
+curl -X POST "http://localhost:8080/api/lessons" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"teacherUuid":"550e8400-e29b-41d4-a716-446655440000","subjectId":1,"timestamp":"2026-07-10T10:00:00+02:00","maxEnrolled":1}'
 ```
 
 ## Further information
