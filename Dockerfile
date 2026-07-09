@@ -9,13 +9,13 @@ COPY checkstyle.xml ./
 RUN ./mvnw clean package -DskipTests
 ARG JAR_FILE=target/*.jar
 RUN cp ${JAR_FILE} sbpb.jar
-RUN java -Djarmode=layertools -jar sbpb.jar extract
+RUN java -Djarmode=tools -jar sbpb.jar extract --layers --launcher
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR school-booking-platform-backend
-COPY --from=builder school-booking-platform-backend/dependencies/ ./
-COPY --from=builder school-booking-platform-backend/spring-boot-loader/ ./
-COPY --from=builder school-booking-platform-backend/application/ ./
+COPY --from=builder school-booking-platform-backend/sbpb/dependencies/ ./
+COPY --from=builder school-booking-platform-backend/sbpb/spring-boot-loader/ ./
+COPY --from=builder school-booking-platform-backend/sbpb/application/ ./
 ENTRYPOINT ["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:54342", "org.springframework.boot.loader.launch.JarLauncher"]
 EXPOSE 8080
 EXPOSE 54342
