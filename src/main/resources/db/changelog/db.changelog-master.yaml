@@ -21,3 +21,5 @@ databaseChangeLog:
       file: db/changelog/changes/009-create-teachers-availability-slots-table.yml
   - include:
       file: db/changelog/changes/010-create-lessons-table.yml
+  - include:
+      file: db/changelog/changes/011-create-students-table.yml
