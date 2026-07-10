@@ -1,6 +1,7 @@
 package pl.koder95.sbp.backend.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.sql.SQLException;
 import java.util.List;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,14 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
             HttpServletRequest request, HttpStatus status, List<String> errors
     ) {
         return createUniversalErrorMessageFormat(request, status, errors, new HttpHeaders());
+    }
+
+    @ExceptionHandler(SQLException.class)
+    protected ResponseEntity<Object> handleSqlException(
+            SQLException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        return createUniversalErrorMessageFormat(request, status,
+                List.of("An database error occurred: " + ex.getErrorCode()));
     }
 
     @ExceptionHandler(EmailAlreadyExistsException.class)

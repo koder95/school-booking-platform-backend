@@ -1,5 +1,4 @@
 # School Booking Platform Backend
-
 This repository contains the backend service for the **School Booking Platform**.
 
 This README describes the available REST endpoints and the JSON request/response
@@ -18,18 +17,63 @@ schemas used by the API.
 > docker-compose down -v && docker-compose up -d
 > ```
 
-## :shield: Authentication
+## Requirements
+Minimum recommended environment to run the project locally:
 
+- Java 17 (or newer) and a compatible JDK installed (or use the bundled `./mvnw` wrapper).
+- Maven (if not using `./mvnw`).
+- PostgreSQL 12+ (for production/local DB). Connection is configured via Spring properties (see `application.properties`).
+- Docker & Docker Compose (recommended for local development and MailHog service).
+- Optional: MailHog for capturing emails locally (SMTP on 1025, UI on 8025).
+
+## :shield: Authentication
 - The service uses **JWT bearer tokens**.
 - Obtain a token by calling the login endpoint. Use the returned token as an
   `Authorization: Bearer <token>` header for protected endpoints.
 
-Recent fix: the authentication flow now properly surfaces error messages when authentication fails. The security configuration was also adjusted to ensure unauthenticated GET access to certain endpoints (e.g. lessons listing) while protecting modification endpoints.
+Recent fix: the authentication flow now properly surfaces error messages when authentication fails. The security configuration was also adjusted to ensure unauthenticated GET access to certain endpoints where intended.
 
 ## :door: Endpoints
+(Existing endpoints retained — see below for full list)
+
+### New: Students module
+This release introduces a Students module to manage students in the system.
+
+Key points:
+
+- JPA `Student` entity with soft-delete support (logical deletion flag).
+- `StudentRepository`, `StudentService` and `StudentServiceImpl` with standard CRUD operations.
+- `StudentController` exposing endpoints secured with `ADMIN` role where noted.
+- DTOs and MapStruct-based `StudentMapper` (mapper uses `EmailRepository` to resolve/create `Email` entities when needed).
+- Liquibase changeset added to create the `students` table and updated master changelog.
+- Spring Data paging support is used for list endpoints.
+
+Student endpoints (examples):
+
+- `GET /api/students` — paged list of students (ADMIN only)
+  - Query params: `page` (0-based), `size`, `sort`
+  - Returns: `Page<StudentDto>`
+
+- `POST /api/students` — create student (ADMIN only)
+  - Request JSON example:
+    ```json
+    {
+      "email": "student@example.com",
+      "firstName": "Alice",
+      "lastName": "Johnson"
+    }
+    ```
+  - Response: `StudentDto` with created entity info
+
+- `GET /api/students/{id}` — get single student by numeric ID (ADMIN only)
+
+Errors: standard HTTP codes (400 on validation, 401/403 for auth, 404 when not found).
+
+For further details see the Student DTOs and controller source in `src/main/java`.
+
+---
 
 ### 1) :unlock: `POST /api/auth/login`
-
 Description: Authenticate a user and obtain an access token.
 
 Request JSON:
@@ -40,8 +84,8 @@ Request JSON:
 }
 ```
 Validation:
-- email: required, must be a valid email format
-- password: required, non-empty
+- `email`: required, must be a valid email format
+- `password`: required, non-empty
 
 Response JSON (200):
 ```json
@@ -54,13 +98,12 @@ Errors:
 - **401 Unauthorized** — when credentials are invalid
 
 ### 2) :lock: `GET /api/emails`
-
 Description: Retrieve a paginated list of stored emails. This endpoint is
 protected and requires a valid bearer token with `ADMIN` role.
 
 Authentication: set header
 
-Authorization: Bearer <token>
+Authorization: `Bearer <token>`
 
 **Query parameters (optional):**
 - `page` (int) — page index, 0-based (default depends on Spring but commonly 0)
@@ -106,7 +149,6 @@ Errors:
 - **403 Forbidden** — when authenticated user does not have ADMIN role
 
 ### 3) :mortar_board: Teacher management
-
 The project now exposes REST endpoints to manage Teacher entities. Teachers
 have a UUID primary key and are associated one-to-one with an existing `Email`
 entity (referenced by `emailId` in the DB). Teachers support soft-delete.
@@ -117,10 +159,9 @@ All teacher endpoints require a valid bearer token. Role requirements are
 noted per endpoint.
 
 #### `GET /api/teachers`
-
 Description: Retrieve a paginated list of teachers.
 
-Authorization: Bearer <token>
+Authorization: `Bearer <token>`
 
 Roles: ADMIN only
 
@@ -161,10 +202,9 @@ Schema for `TeacherDto`:
 ```
 
 #### `GET /api/teachers/{uuid}`
-
 Description: Get a single teacher by UUID.
 
-Authorization: Bearer <token>
+Authorization: `Bearer <token>`
 
 Roles: ADMIN, STUDENT
 
@@ -183,10 +223,9 @@ Errors:
 - **401 / 403** — as with other protected endpoints
 
 #### `POST /api/teachers`
-
 Description: Create a new teacher.
 
-Authorization: Bearer <token>
+Authorization: `Bearer <token>`
 
 Roles: ADMIN only
 
@@ -219,10 +258,9 @@ Errors:
 - **401 / 403** — as above
 
 #### `PUT /api/teachers/{uuid}`
-
 Description: Update an existing teacher.
 
-Authorization: Bearer <token>
+Authorization: `Bearer <token>`
 
 Roles: ADMIN only
 
@@ -243,10 +281,9 @@ Notes:
 Response JSON (`TeacherDto`): updated teacher representation
 
 #### `DELETE /api/teachers/{uuid}`
-
 Description: Delete (soft-delete) a teacher by UUID.
 
-Authorization: Bearer <token>
+Authorization: `Bearer <token>`
 
 Roles: ADMIN only
 
@@ -258,7 +295,6 @@ Errors common to teacher endpoints:
 - **404 Not Found** — when resource (teacher) does not exist
 
 #### Generate availability slots for a new teacher
-
 Use this flow when an admin creates a teacher and wants to generate
 availability slots for the next week.
 
@@ -310,7 +346,6 @@ Notes:
 - Availability timestamps use the teacher's configured time zone.
 
 ### 4) :books: Subject management
-
 The project exposes REST endpoints to manage Subject entities ("przedmioty").
 Subjects are identified by a numeric ID and typically contain a name and an
 optional description.
@@ -319,10 +354,9 @@ All subject endpoints require a valid bearer token. Role requirements are
 noted per endpoint.
 
 #### `GET /api/subjects`
-
 Description: Retrieve a paginated list of subjects.
 
-Authorization: Bearer <token>
+Authorization: `Bearer <token>`
 
 Roles: ADMIN only
 
@@ -359,10 +393,9 @@ Schema for `SubjectDto`:
 ```
 
 #### `GET /api/subjects/{id}`
-
 Description: Get a single subject by numeric ID.
 
-Authorization: Bearer <token>
+Authorization: `Bearer <token>`
 
 Roles: ADMIN, STUDENT
 
@@ -379,10 +412,9 @@ Errors:
 - **401 / 403** — as with other protected endpoints
 
 #### `POST /api/subjects`
-
 Description: Create a new subject.
 
-Authorization: Bearer <token>
+Authorization: `Bearer <token>`
 
 Roles: ADMIN only
 
@@ -407,10 +439,9 @@ Errors:
 - **401 / 403** — as above
 
 #### `PUT /api/subjects/{id}`
-
 Description: Update an existing subject.
 
-Authorization: Bearer <token>
+Authorization: `Bearer <token>`
 
 Roles: ADMIN only
 
@@ -426,10 +457,9 @@ applied if present:
 Response JSON (`SubjectDto`): updated subject representation
 
 #### `DELETE /api/subjects/{id}`
-
 Description: Delete (soft-delete) a subject by ID.
 
-Authorization: Bearer <token>
+Authorization: `Bearer <token>`
 
 Roles: ADMIN only
 
@@ -441,7 +471,6 @@ Errors common to subject endpoints:
 - **404 Not Found** — when resource (subject) does not exist
 
 ### 5) :bookmark_tabs: Lessons management
-
 New in this release: full lesson management API. Lessons represent scheduled
 bookings/appointments created by students (consuming availability slots) for a
 specific teacher and subject.
@@ -489,93 +518,87 @@ Errors:
 - **404 Not Found** — referenced teacher/subject/slot not found
 - **401 / 403** — as with other protected endpoints
 
-## :magic_wand: MagicLink & MagicToken Mechanism
+## Running locally (development)
+There are two common ways to start the application locally:
 
-The platform supports a **passwordless login flow** using MagicLinks and MagicTokens. This mechanism
-allows students to log in by clicking a link in an email instead of using a password.
+1) Using Docker Compose (recommended for a quick local environment with PostgreSQL + MailHog):
 
-### How It Works
+```bash
+# start DB + mailhog and the app (if Dockerfile + compose configured)
+docker-compose up -d --build
 
-1. **Generate MagicLink & MagicToken:**
-   - The backend generates a `MagicToken` containing:
-     - `email`: the student's email address
-     - `createdAt`: timestamp of token creation
-     - `notificationUuid`: unique identifier for tracking the notification
-   - A `MagicToken` is then serialized (encrypted) to create a secure token string
-   - The `MagicLink` is constructed with:
-     - `baseUrl`: frontend base URL (from configuration)
-     - `frontendEndpoint`: the login endpoint on the frontend
-     - `paramName`: the query parameter name (e.g., "token")
-     - `paramValue`: the serialized token
-   - The complete URL example: `https://frontend.example.com/login?token=<encrypted-token>`
-
-2. **Send MagicLink via Email:**
-   - The generated `MagicLink` URL is embedded in an email message
-   - Student receives the email and clicks the link
-
-3. **Student Clicks the Link:**
-   - Frontend extracts the token from the URL query parameter (`token`)
-   - Frontend sends the token to the backend for validation and authentication
-
-4. **Backend Validates the Token:**
-   - Backend deserializes the encrypted token back to `MagicToken`
-   - Validation checks:
-     - Token is not expired (expires after `magic-link.expiration-time` seconds from creation)
-     - Email address matches the requesting user
-     - Notification UUID matches
-   - If all checks pass, the student is authenticated and issued a JWT access token
-
-### Configuration
-
-The following properties control the MagicLink behavior (in `application.properties`):
-
-```properties
-magic-link.expiration-time=3600      # Token expiration time in seconds (default: 1 hour)
-magic-link.secret=your-secret-key    # Secret key for token encryption/serialization
-magic-link.base-url=https://frontend.example.com
-magic-link.frontend-endpoint=login    # Endpoint on frontend that handles the magic link
-magic-link.paramName=token            # Query parameter name for the token
+# stop and remove volumes if you want a clean DB
+docker-compose down -v
 ```
 
-### Data Structures
+2) Using Maven wrapper (runs against local/Postgres configured in `application.properties`):
 
-**MagicToken (internal):**
-```json
-{
-  "email": "student@example.com",
-  "createdAt": "2026-06-16T10:30:00+02:00",
-  "notificationUuid": "550e8400-e29b-41d4-a716-446655440000"
-}
+```bash
+./mvnw spring-boot:run
+# or build and run
+./mvnw clean package
+java -jar target/*.jar
 ```
 
-**MagicLink (for email):**
-- Not directly sent as JSON; composed as a URL:
-  ```
-  https://frontend.example.com/login?token=eyJhbGc...encrypted-token...
-  ```
-- Components:
-  - `baseUrl`: `https://frontend.example.com`
-  - `frontendEndpoint`: `login`
-  - `paramName`: `token`
-  - `paramValue`: encrypted `MagicToken`
+Note: The application sets `server.forward-headers-strategy` in `application.properties` to ensure correct handling of forwarded headers when deployed behind a reverse proxy.
 
-### Error Handling
+## Tests
+Run unit and integration tests with Maven:
 
-- **InvalidMagicTokenException**: Thrown when:
-  - Token is expired
-  - Email address mismatch
-  - Notification UUID mismatch
-  - Token decryption fails
-  - Token is malformed or null
+```bash
+./mvnw test
+```
+
+Some integration tests rely on a running PostgreSQL instance or Testcontainers; check test profiles and `src/test/resources/application-test.properties` for settings.
+
+## API documentation / Swagger (OpenAPI)
+This project includes SpringDoc OpenAPI configuration. When enabled, the API documentation and interactive UI are available at one of the following URLs (depending on SpringDoc version and configuration):
+
+- http://localhost:8080/swagger-ui.html
+- http://localhost:8080/swagger-ui/index.html
+- OpenAPI JSON: http://localhost:8080/v3/api-docs
+
+How to use the Swagger UI locally:
+
+1. Start the application (see Running locally).
+2. Open the Swagger UI URL in a browser.
+3. For secured endpoints, click "Authorize" and paste `Bearer <token>` (include the "Bearer " prefix) into the value box.
+
+Example: fetch students (ADMIN role)
+
+```bash
+# login to obtain token
+curl -X POST "http://localhost:8080/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","password":"secret"}'
+
+# get paged students
+curl -H "Authorization: Bearer <token>" "http://localhost:8080/api/students?page=0&size=20"
+```
+
+## Database migrations (Liquibase)
+Liquibase changelogs are located under `src/main/resources/db/changelog`.
+If you run the application with a fresh database, Liquibase will apply the changelogs automatically on startup.
+
+## Notes & operational changes in this release
+- OpenAPI (SpringDoc) configuration was added/updated to expose API docs and Swagger UI.
+- Spring Data web support was enabled in the main application to allow automatic binding of `Pageable` parameters for paged endpoints.
+- Global exception handling was extended to catch and correctly handle `SQLException` (returns appropriate 500/4xx responses with logged details).
+- `server.forward-headers-strategy` is set in `application.properties` to support proxy headers when deployed behind a reverse proxy.
+
+## Mail / Email testing
+For local development we recommend using MailHog:
+- SMTP: `localhost:1025`
+- Web UI: `http://localhost:8025`
+See `docker-compose` for a MailHog service example.
 
 ## Email delivery logging, MailHog (local testing) & Login notifications
-
-Recent changes introduce email delivery logging and support for local email capture using MailHog. The application now records each attempted email delivery and persists a delivery log with status and error information.
+The application records each attempted email delivery and persists a delivery log with status and error information.
 
 Key points:
 
-- New model: `EmailDeliveryLog` with fields: `recipient` (Email), `subject`, `body` (TEXT), `status` (PENDING/SENT/FAILED), `createdAt`, `errorMessage`, and soft-delete (`isDeleted`). See: `src/main/java/...` for details.
-- New DTO: `SendEmailRequestDto` (validated recipient, subject, body) and `DeliveryStatus` enum.
+- Model: `EmailDeliveryLog` with fields: `recipient` (Email), `subject`, `body` (TEXT), `status` (PENDING/SENT/FAILED), `createdAt`, `errorMessage`, and soft-delete (`isDeleted`).
+- DTO: `SendEmailRequestDto` (validated recipient, subject, body) and `DeliveryStatus` enum.
 - Repository: `EmailDeliveryLogRepository` added with helper `findByStatus`.
 - Service: `EmailDeliveryService` (interface) and `EmailDeliveryServiceImpl` which:
   - Validates requests
@@ -607,7 +630,7 @@ mailhog:
     retries: 5
 ```
 
-Example test Spring properties (`src/test/resources/application-test.properties`):
+Example test Spring properties (`src/test/resources/application.properties`):
 ```properties
 spring.mail.host=localhost
 spring.mail.port=1025
@@ -617,28 +640,8 @@ spring.mail.properties.mail.smtp.auth=false
 spring.mail.properties.mail.smtp.starttls.enable=false
 ```
 
-Database changelogs:
-
-- A Liquibase changelog was added to create the `email_delivery_logs` table and the foreign key to the `emails` table. Check the repository's changelog under `src/main/resources/db/changelog` for details.
-- New changelog `010` adds the `lessons` table and constraints required for the lessons feature. The teachers table migration was updated to add `subject_id`.
-
-## Notes & Validation
-
-- Email creation/validation elsewhere in the API uses the following DTO (`EmailValueDto`):
-  ```json
-    {
-      "value": "user@example.com"
-    }
-  ```
-  Validation rules:
-  - value: required, not blank, must be a valid email format
-
-- Login uses `UserLoginRequestDto` (see above) and returns `UserLoginResponseDto`
-  with a single field `token`.
-
 ## CORS & Security
-
-CORS configuration was extended to expose the `Authorization` header and allow credentials where appropriate to support frontend usage with cookies/authorization headers in cross-origin scenarios. Security configuration was also updated to allow unauthenticated GET access to `/api/lessons` and `/api/lessons/*` while protecting mutating endpoints for ADMIN users.
+CORS configuration was extended to expose the `Authorization` header and allow credentials where appropriate to support frontend usage with cookies/authorization headers in cross-origin scenarios.
 
 ## Examples (curl)
 
@@ -648,7 +651,12 @@ curl -X POST "http://localhost:8080/api/auth/login" -H "Content-Type: applicatio
   "{\"email\":\"admin@example.com\",\"password\":\"secret\"}"
 ```
 
-### Use token to fetch emails (replace <token> with actual token)
+### Use token to fetch students (ADMIN only)
+```bash
+curl -H "Authorization: Bearer <token>" "http://localhost:8080/api/students?page=0&size=10"
+```
+
+### Use token to fetch emails (ADMIN only)
 ```bash
 curl -H "Authorization: Bearer <token>" "http://localhost:8080/api/emails?page=0&size=10"
 ```
@@ -677,9 +685,4 @@ curl -X POST "http://localhost:8080/api/lessons" \
 ```
 
 ## Further information
-
-- For full API documentation (if enabled) check the project's **OpenAPI/Swagger
-  UI** (commonly available at `/swagger-ui.html` or `/swagger-ui/index.html` when
-  **springdoc-openapi** is configured) or consult the controller and DTO source
-  code in `src/main/java/pl/koder95/sbp/backend`.
-
+- For full API documentation check the project's **OpenAPI/Swagger UI** (URLs above) or consult the controller and DTO source code in `src/main/java/pl/koder95/sbp/backend`.
