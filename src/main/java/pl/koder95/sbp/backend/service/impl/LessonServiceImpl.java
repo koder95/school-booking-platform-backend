@@ -13,6 +13,7 @@ import pl.koder95.sbp.backend.exception.EntityNotFoundException;
 import pl.koder95.sbp.backend.mapper.LessonMapper;
 import pl.koder95.sbp.backend.model.Lesson;
 import pl.koder95.sbp.backend.repository.AvailabilitySlotRepository;
+import pl.koder95.sbp.backend.repository.BookingRepository;
 import pl.koder95.sbp.backend.repository.LessonRepository;
 import pl.koder95.sbp.backend.repository.SubjectRepository;
 import pl.koder95.sbp.backend.repository.TeacherRepository;
@@ -26,6 +27,7 @@ public class LessonServiceImpl implements LessonService {
     private final AvailabilitySlotRepository availabilitySlotRepository;
     private final TeacherRepository teacherRepository;
     private final SubjectRepository subjectRepository;
+    private final BookingRepository bookingRepository;
 
     @Override
     @Transactional
@@ -34,19 +36,22 @@ public class LessonServiceImpl implements LessonService {
                 requestDto, availabilitySlotRepository, teacherRepository, subjectRepository
         ));
         availabilitySlotRepository.deleteById(requestDto.availabilitySlotUuid());
-        return mapper.toDto(saved);
+        return mapper.toDto(saved, bookingRepository);
     }
 
     @Override
     public Page<LessonDto> findAll(Pageable pageable) {
-        return repository.findAll(pageable).map(mapper::toDto);
+        return repository.findAll(pageable)
+                .map(lesson -> mapper.toDto(lesson, bookingRepository));
     }
 
     @Override
     public LessonDto getByUuid(UUID lessonUuid) {
-        return repository.findById(lessonUuid).map(mapper::toDto).orElseThrow(
-                () -> new EntityNotFoundException("Lesson not found with uuid: " + lessonUuid)
-        );
+        return repository.findById(lessonUuid)
+                .map(lesson -> mapper.toDto(lesson, bookingRepository))
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Lesson not found with uuid: " + lessonUuid
+                ));
     }
 
     @Override
@@ -55,7 +60,7 @@ public class LessonServiceImpl implements LessonService {
                 () -> new EntityNotFoundException("Lesson not found with uuid: " + lessonUuid)
         );
         mapper.updateModel(lesson, requestDto, teacherRepository, subjectRepository);
-        return mapper.toDto(repository.save(lesson));
+        return mapper.toDto(repository.save(lesson), bookingRepository);
     }
 
     @Override
@@ -64,6 +69,6 @@ public class LessonServiceImpl implements LessonService {
                 () -> new EntityNotFoundException("Lesson not found with uuid: " + lessonUuid)
         );
         repository.delete(lesson);
-        return mapper.toDto(lesson);
+        return mapper.toDto(lesson, bookingRepository);
     }
 }

@@ -10,6 +10,7 @@ import pl.koder95.sbp.backend.dto.LessonDto;
 import pl.koder95.sbp.backend.dto.UpdateLessonRequestDto;
 import pl.koder95.sbp.backend.model.Lesson;
 import pl.koder95.sbp.backend.repository.AvailabilitySlotRepository;
+import pl.koder95.sbp.backend.repository.BookingRepository;
 import pl.koder95.sbp.backend.repository.SubjectRepository;
 import pl.koder95.sbp.backend.repository.TeacherRepository;
 
@@ -35,7 +36,10 @@ public interface LessonMapper {
     @Mapping(target = "lessonUuid", source = "uuid")
     @Mapping(target = "subjectId", source = "subject.id")
     @Mapping(target = "teacherUuid", source = "assigned.uuid")
-    LessonDto toDto(Lesson model);
+    @Mapping(target = "enrolled",
+            expression = "java(bookingRepository.countDistinctByLesson(model))")
+    LessonDto toDto(Lesson model,
+                    @Context BookingRepository bookingRepository);
 
     @Mapping(target = "maxEnrolled", expression = "java(dto.maxEnrolled())")
     void updateModel(@MappingTarget Lesson lesson, UpdateLessonRequestDto dto,

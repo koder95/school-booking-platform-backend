@@ -1,4 +1,4 @@
-package pl.koder95.sbp.backend.factory;
+package pl.koder95.sbp.backend.mapper;
 
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;

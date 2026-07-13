@@ -17,9 +17,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import pl.koder95.sbp.backend.dto.BookingDto;
 import pl.koder95.sbp.backend.dto.CreateLessonRequestDto;
 import pl.koder95.sbp.backend.dto.LessonDto;
 import pl.koder95.sbp.backend.dto.UpdateLessonRequestDto;
+import pl.koder95.sbp.backend.service.BookingService;
 import pl.koder95.sbp.backend.service.LessonService;
 
 @RestController
@@ -28,6 +30,7 @@ import pl.koder95.sbp.backend.service.LessonService;
 @Tag(name = "Lesson management", description = "The endpoint to manage lessons")
 public class LessonController {
     private final LessonService lessonService;
+    private final BookingService bookingService;
 
     @GetMapping
     @Operation(summary = "Get all lessons", description = "Get all lessons with pagination")
@@ -47,6 +50,14 @@ public class LessonController {
     @Operation(summary = "Create lesson", description = "Create a new lesson")
     public LessonDto create(@RequestBody CreateLessonRequestDto requestDto) {
         return lessonService.create(requestDto);
+    }
+
+    @PostMapping("/{lessonUuid}/booking")
+    @PreAuthorize("hasRole('STUDENT')")
+    @SecurityRequirement(name = "bearer-key")
+    @Operation(summary = "Book lesson", description = "Book a lesson as student")
+    public BookingDto book(@PathVariable UUID lessonUuid) {
+        return bookingService.book(lessonUuid);
     }
 
     @PutMapping("/{lessonUuid}")
