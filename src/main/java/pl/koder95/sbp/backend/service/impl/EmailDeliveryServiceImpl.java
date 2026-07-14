@@ -13,6 +13,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import pl.koder95.sbp.backend.dto.SendEmailRequestDto;
+import pl.koder95.sbp.backend.exception.EmailDeliveryException;
 import pl.koder95.sbp.backend.model.DeliveryStatus;
 import pl.koder95.sbp.backend.model.Email;
 import pl.koder95.sbp.backend.model.EmailDeliveryLog;
@@ -39,13 +40,16 @@ public class EmailDeliveryServiceImpl implements EmailDeliveryService {
             helper.setFrom(mailFrom, "School Booking Platform");
             helper.setTo(dto.recipient());
             helper.setSubject(dto.subject());
-            helper.setText(dto.body());
+            helper.setText(dto.body(), true);
             mailSender.send(mimeMessage);
             updateStatus(deliveryLog, DeliveryStatus.SENT, null);
         } catch (RuntimeException | MessagingException | UnsupportedEncodingException e) {
             ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
             e.printStackTrace(new PrintStream(errorStream));
             updateStatus(deliveryLog, DeliveryStatus.FAILED, errorStream.toString());
+            throw new EmailDeliveryException(
+                    "Email wasn't sent (log #%d).".formatted(deliveryLog.getId())
+            );
         } finally {
             logRepository.save(deliveryLog);
         }
