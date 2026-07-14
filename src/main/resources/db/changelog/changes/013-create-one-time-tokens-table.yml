@@ -1,0 +1,24 @@
+databaseChangeLog:
+  - changeSet:
+      id: 013-create-one-time-tokens-table
+      author: Koder95
+      changes:
+        - createTable:
+            tableName: one_time_tokens
+            columns:
+              - column:
+                  name: token_value
+                  type: varchar(36)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expires_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false

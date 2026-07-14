@@ -3,7 +3,6 @@ package pl.koder95.sbp.backend.service.impl;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.ott.OneTimeTokenAuthentication;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -46,11 +45,12 @@ public class BookingServiceImpl implements BookingService {
 
     private Student getAuthenticatedStudent() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof OneTimeTokenAuthentication ott) {
-            Object principal = ott.getPrincipal();
-            if (principal instanceof Student student) {
-                return student;
-            }
+        if (authentication == null) {
+            throw new IllegalBookingException("booking is not available for public access");
+        }
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof Student student) {
+            return student;
         }
         throw new IllegalBookingException("booking is not available for current user");
     }

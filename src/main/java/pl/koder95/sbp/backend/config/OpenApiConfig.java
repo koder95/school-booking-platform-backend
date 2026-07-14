@@ -13,7 +13,7 @@ public class OpenApiConfig {
     public OpenAPI customOpenApi() {
         return new OpenAPI().info(new Info()
                 .title("School Booking Platform API")
-                .version("1.0-SNAPSHOT-0.10.0")
+                .version("1.0-SNAPSHOT-0.11.0")
                 .contact(new Contact().name("Koder95").url("https://github.com/koder95"))
                 .license(new License()
                         .name("The MIT License")
