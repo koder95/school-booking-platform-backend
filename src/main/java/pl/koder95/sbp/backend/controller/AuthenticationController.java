@@ -26,17 +26,19 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final OneTimeTokenAuthenticationService oneTimeTokenAuthenticationService;
 
-    @Operation(summary = "Generate access token")
+    @Operation(summary = "Generate access token for administrators")
     @PostMapping("/login")
     public UserLoginResponseDto login(@Valid @RequestBody UserLoginRequestDto requestDto) {
         return authenticationService.login(requestDto);
     }
 
+    @Operation(summary = "Generate access token for students")
     @PostMapping("/ott")
     public UserLoginResponseDto login(@RequestBody StudentLoginRequestDto requestDto) {
         return oneTimeTokenAuthenticationService.authenticate(requestDto);
     }
 
+    @Operation(summary = "Generate OTT token and send it")
     @PostMapping("/ott/generate")
     public EmailDeliveryInfoDto sendOtt(GenerateOneTimeTokenRequestDto request) {
         return oneTimeTokenAuthenticationService.generateOtt(request);
