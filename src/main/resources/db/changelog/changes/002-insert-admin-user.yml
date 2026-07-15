@@ -16,6 +16,12 @@ databaseChangeLog:
             tableName: users
             columns:
                 - column:
+                    name: "uuid"
+                    value: "e26a7d9f-e9f8-488e-a58c-756404085724"
+                - column:
+                    name: "dtype"
+                    value: "User"
+                - column:
                     name: "email_id"
                     value: 1
                 - column:
@@ -24,6 +30,9 @@ databaseChangeLog:
                 - column:
                     name: "authority"
                     value: "ROLE_ADMIN"
+                - column:
+                    name: "zone_id"
+                    value: "GMT"
                 - column:
                     name: "is_deleted"
                     valueBoolean: false
