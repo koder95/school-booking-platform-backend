@@ -1,25 +1,17 @@
 package pl.koder95.sbp.backend.service.impl;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.time.ZonedDateTime;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.ott.GenerateOneTimeTokenRequest;
 import org.springframework.security.authentication.ott.OneTimeToken;
 import org.springframework.security.authentication.ott.OneTimeTokenAuthenticationToken;
 import org.springframework.security.authentication.ott.OneTimeTokenService;
-import org.springframework.security.web.authentication.ott.OneTimeTokenGenerationSuccessHandler;
 import org.springframework.stereotype.Service;
 import pl.koder95.sbp.backend.dto.EmailDeliveryInfoDto;
 import pl.koder95.sbp.backend.dto.GenerateOneTimeTokenRequestDto;
 import pl.koder95.sbp.backend.dto.SendEmailRequestDto;
 import pl.koder95.sbp.backend.dto.StudentLoginRequestDto;
 import pl.koder95.sbp.backend.dto.UserLoginResponseDto;
-import pl.koder95.sbp.backend.model.DeliveryStatus;
 import pl.koder95.sbp.backend.model.Email;
 import pl.koder95.sbp.backend.model.Student;
 import pl.koder95.sbp.backend.repository.EmailRepository;
@@ -27,21 +19,17 @@ import pl.koder95.sbp.backend.repository.StudentRepository;
 import pl.koder95.sbp.backend.security.JwtUtil;
 import pl.koder95.sbp.backend.service.EmailDeliveryService;
 import pl.koder95.sbp.backend.service.OneTimeTokenAuthenticationService;
+import pl.koder95.sbp.backend.service.OneTimeTokenDeliveryService;
 
 @Service
 @RequiredArgsConstructor
 public class OneTimeTokenAuthenticationServiceImpl implements OneTimeTokenAuthenticationService {
-    private final OneTimeTokenGenerationSuccessHandler generationSuccessHandler;
     private final OneTimeTokenService oneTimeTokenService;
     private final JwtUtil jwtUtil;
     private final EmailDeliveryService emailDeliveryService;
+    private final OneTimeTokenDeliveryService tokenDeliveryService;
     private final EmailRepository emailRepository;
     private final StudentRepository studentRepository;
-
-    @Autowired
-    private HttpServletRequest request;
-    @Autowired
-    private HttpServletResponse response;
 
     @Override
     public EmailDeliveryInfoDto generateOtt(GenerateOneTimeTokenRequestDto requestDto) {
@@ -56,18 +44,7 @@ public class OneTimeTokenAuthenticationServiceImpl implements OneTimeTokenAuthen
         }
         GenerateOneTimeTokenRequest request = new GenerateOneTimeTokenRequest(requestDto.email());
         OneTimeToken generated = oneTimeTokenService.generate(request);
-        try {
-            generationSuccessHandler.handle(this.request, this.response, generated);
-        } catch (IOException | ServletException e) {
-            this.response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            return new EmailDeliveryInfoDto(
-                    ZonedDateTime.now(), DeliveryStatus.FAILED, "token delivery failed",
-                    request.getUsername()
-            );
-        }
-        return new EmailDeliveryInfoDto(
-                ZonedDateTime.now(), DeliveryStatus.SENT, null, request.getUsername()
-        );
+        return tokenDeliveryService.deliver(generated);
     }
 
     @Override

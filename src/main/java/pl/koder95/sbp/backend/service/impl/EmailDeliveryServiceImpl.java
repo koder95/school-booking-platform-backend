@@ -5,13 +5,17 @@ import jakarta.mail.internet.MimeMessage;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.time.ZonedDateTime;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.security.authentication.ott.OneTimeToken;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
+import pl.koder95.sbp.backend.config.MagicLinkConfig;
+import pl.koder95.sbp.backend.dto.EmailDeliveryInfoDto;
 import pl.koder95.sbp.backend.dto.SendEmailRequestDto;
 import pl.koder95.sbp.backend.exception.EmailDeliveryException;
 import pl.koder95.sbp.backend.model.DeliveryStatus;
@@ -20,13 +24,16 @@ import pl.koder95.sbp.backend.model.EmailDeliveryLog;
 import pl.koder95.sbp.backend.repository.EmailDeliveryLogRepository;
 import pl.koder95.sbp.backend.repository.EmailRepository;
 import pl.koder95.sbp.backend.service.EmailDeliveryService;
+import pl.koder95.sbp.backend.service.OneTimeTokenDeliveryService;
 
 @Service
 @RequiredArgsConstructor
-public class EmailDeliveryServiceImpl implements EmailDeliveryService {
+public class EmailDeliveryServiceImpl
+        implements EmailDeliveryService, OneTimeTokenDeliveryService {
     private final JavaMailSender mailSender;
     private final EmailRepository emailRepository;
     private final EmailDeliveryLogRepository logRepository;
+    private final MagicLinkConfig magicLinkConfig;
 
     @Value("${spring.mail.username}")
     private String mailFrom;
@@ -74,5 +81,29 @@ public class EmailDeliveryServiceImpl implements EmailDeliveryService {
             return emailRepository.save(created);
         }));
         return logRepository.save(log);
+    }
+
+    @Override
+    public EmailDeliveryInfoDto deliver(OneTimeToken token) {
+        String username = token.getUsername();
+        ZonedDateTime createdAt = ZonedDateTime.now();
+        String magicLink = "%s/%s?%s=%s".formatted(
+                magicLinkConfig.baseUrl(),
+                magicLinkConfig.frontendEndpoint(),
+                magicLinkConfig.paramName(),
+                token.getTokenValue()
+        );
+        String emailBody = "<html><body><p>Your link: <a href=\"%s\">%s</a></p></body></html>"
+                .formatted(magicLink, magicLink);
+        try {
+            send(new SendEmailRequestDto(username, "Authenticate yourself", emailBody));
+        } catch (Exception e) {
+            return new EmailDeliveryInfoDto(
+                    createdAt, DeliveryStatus.FAILED, "token delivery failed", username
+            );
+        }
+        return new EmailDeliveryInfoDto(
+                createdAt, DeliveryStatus.SENT, null, username
+        );
     }
 }
