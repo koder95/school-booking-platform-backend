@@ -36,4 +36,8 @@ public interface AvailabilitySlotService {
     List<AvailabilitySlotDto> deleteAllFor(UUID teacherUuid);
 
     Page<AvailabilitySlotDto> deleteAllFor(UUID teacherUuid, Pageable pageable);
+
+    Page<AvailabilitySlotDto> getAll(Pageable pageable);
+
+    Page<AvailabilitySlotDto> createOrGetAll(Pageable pageable);
 }

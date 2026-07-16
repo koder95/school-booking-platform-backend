@@ -52,8 +52,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/api/lessons", "/api/lessons/*",
                                 "/api/teachers/*", "/api/teachers/*/availability",
-                                "/api/teachers/*/availability/slots",
-                                "/api/teachers/*/availability/slots/*",
                                 "/api/subjects", "/api/subjects/*"
                         ).permitAll()
                         .anyRequest().authenticated()

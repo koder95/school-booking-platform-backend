@@ -146,10 +146,12 @@ public class TeacherController {
         return availabilityService.updateFor(teacherUuid, dto, true);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     @GetMapping("/{teacherUuid}/availability/slots")
     @Operation(summary = "Get all availability slots for a teacher",
             description = "Retrieve a paginated list of availability slots for a specific "
-                    + "teacher by their UUID. Available for public access.")
+                    + "teacher by their UUID. Only available for users with ADMIN role.")
     public Page<AvailabilitySlotDto> getAllAvailabilitySlots(
             @PathVariable UUID teacherUuid, @ParameterObject Pageable pageable
     ) {

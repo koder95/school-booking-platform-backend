@@ -61,7 +61,9 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
             SQLException ex, HttpServletRequest request) {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         return createUniversalErrorMessageFormat(request, status,
-                List.of("An database error occurred: " + ex.getErrorCode()));
+                List.of("An database error(%d) occurred with SQL state: %s"
+                        .formatted(ex.getErrorCode(), ex.getSQLState()))
+        );
     }
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
