@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import pl.koder95.sbp.backend.dto.CreateStudentRequestDto;
 import pl.koder95.sbp.backend.dto.StudentDto;
 import pl.koder95.sbp.backend.exception.EntityNotFoundException;
-import pl.koder95.sbp.backend.factory.StudentMapper;
+import pl.koder95.sbp.backend.mapper.StudentMapper;
 import pl.koder95.sbp.backend.model.Email;
 import pl.koder95.sbp.backend.model.Student;
 import pl.koder95.sbp.backend.repository.EmailRepository;

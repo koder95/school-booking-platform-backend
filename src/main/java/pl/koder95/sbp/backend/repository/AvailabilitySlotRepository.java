@@ -29,6 +29,22 @@ public interface AvailabilitySlotRepository extends JpaRepository<AvailabilitySl
     )
     Page<AvailabilitySlot> findAllByTeacher(Teacher teacher, Pageable pageable);
 
+    @Query(
+            "select a from AvailabilitySlot a inner join a.teachers t "
+                    + "where t = ?1 and a.timestamp > ?2"
+    )
+    List<AvailabilitySlot> findAllByTeacherAndTimestampAfter(
+            Teacher teacher, ZonedDateTime timestamp
+    );
+
+    @Query(
+            "select a from AvailabilitySlot a inner join a.teachers t "
+                    + "where t = ?1 and a.timestamp > ?2"
+    )
+    Page<AvailabilitySlot> findAllByTeacherAndTimestampAfter(
+            Teacher teacher, ZonedDateTime timestamp, Pageable pageable
+    );
+
     List<AvailabilitySlot> findAllByTimestampBetween(
             ZonedDateTime start, ZonedDateTime end
     );
@@ -57,6 +73,8 @@ public interface AvailabilitySlotRepository extends JpaRepository<AvailabilitySl
         ZonedDateTime startTime = ZonedDateTime.now();
         return findAllByTeacherAndTimestampBetween(teacher, startTime, startTime.plus(period));
     }
+
+    Page<AvailabilitySlot> findAllByTimestampAfter(ZonedDateTime timestamp, Pageable pageable);
 
     boolean existsByTimestamp(ZonedDateTime timestamp);
 

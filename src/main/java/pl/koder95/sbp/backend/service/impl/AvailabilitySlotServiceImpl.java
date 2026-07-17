@@ -7,12 +7,15 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.koder95.sbp.backend.dto.AvailabilityDto;
 import pl.koder95.sbp.backend.dto.AvailabilitySlotDto;
+import pl.koder95.sbp.backend.exception.EntityNotFoundException;
 import pl.koder95.sbp.backend.factory.ZonedDateTimeFactory;
 import pl.koder95.sbp.backend.mapper.AvailabilitySlotMapper;
 import pl.koder95.sbp.backend.model.AvailabilitySlot;
@@ -25,12 +28,29 @@ import pl.koder95.sbp.backend.service.AvailabilitySlotService;
 @Service
 @RequiredArgsConstructor
 public class AvailabilitySlotServiceImpl implements AvailabilitySlotService {
+    private static final Logger logger = LoggerFactory.getLogger(AvailabilitySlotServiceImpl.class);
+
     private final AvailabilitySlotRepository repository;
     private final AvailabilitySlotMapper mapper;
     private final AvailabilityService availabilityService;
     private final TeacherRepository teacherRepository;
     private final ZonedDateTimeFactory timeFactory;
     private final Period period = Period.ofWeeks(1);
+
+    @Override
+    @Transactional
+    public Page<AvailabilitySlotDto> createOrGetAll(Pageable pageable) {
+        teacherRepository.findAll().forEach(
+                teacher -> saveNonExistent(teacher,
+                        timeFactory.createTimestampsWith(
+                                teacher.getZoneId(),
+                                period,
+                                availabilityService.getFor(teacher.getUuid())
+                        )
+                )
+        );
+        return repository.findAllByTimestampAfter(ZonedDateTime.now(), pageable).map(mapper::toDto);
+    }
 
     @Override
     @Transactional
@@ -65,7 +85,6 @@ public class AvailabilitySlotServiceImpl implements AvailabilitySlotService {
                 .toList();
         timestamps = new ArrayList<>(timestamps);
         timestamps.removeAll(existent);
-        timestamps = List.copyOf(timestamps);
         repository.saveAll(timestamps.stream().map(
                 timestamp -> createOrGetAvailabilitySlot(timestamp).addTeacher(teacher)
         ).toList());
@@ -73,25 +92,33 @@ public class AvailabilitySlotServiceImpl implements AvailabilitySlotService {
 
     private AvailabilitySlot createOrGetAvailabilitySlot(ZonedDateTime timestamp) {
         if (repository.existsByTimestamp(timestamp)) {
+            logger.info("Available slot localized: {}", timestamp);
             return repository.findByTimestamp(timestamp).orElseThrow();
         }
+        logger.info("New available slot created: {}", timestamp);
         return new AvailabilitySlot().setTimestamp(timestamp);
     }
 
     @Override
     public List<AvailabilitySlotDto> getAllFor(UUID teacherUuid) {
-        clearOld();
-        Teacher teacher = teacherRepository.findById(teacherUuid).orElseThrow();
-        return repository.findAllByTeacher(teacher).stream()
+        Teacher teacher = teacherRepository.findById(teacherUuid)
+                .orElseThrow(() -> new EntityNotFoundException("cannot find a teacher"));
+        return repository.findAllByTeacherAndTimestampAfter(teacher, ZonedDateTime.now()).stream()
                 .map(mapper::toDto)
                 .toList();
     }
 
     @Override
     public Page<AvailabilitySlotDto> getAllFor(UUID teacherUuid, Pageable pageable) {
-        clearOld();
-        Teacher teacher = teacherRepository.findById(teacherUuid).orElseThrow();
-        return repository.findAllByTeacher(teacher, pageable)
+        Teacher teacher = teacherRepository.findById(teacherUuid)
+                .orElseThrow(() -> new EntityNotFoundException("cannot find a teacher"));
+        return repository.findAllByTeacherAndTimestampAfter(teacher, ZonedDateTime.now(), pageable)
+                .map(mapper::toDto);
+    }
+
+    @Override
+    public Page<AvailabilitySlotDto> getAll(Pageable pageable) {
+        return repository.findAllByTimestampAfter(ZonedDateTime.now(), pageable)
                 .map(mapper::toDto);
     }
 
@@ -111,9 +138,5 @@ public class AvailabilitySlotServiceImpl implements AvailabilitySlotService {
         Page<AvailabilitySlot> slots = repository.findAllByTeacher(teacher, pageable);
         slots.forEach(slot -> repository.save(slot.removeTeacher(teacher)));
         return slots.map(mapper::toDto);
-    }
-
-    private void clearOld() {
-        repository.deleteByTimestampBefore(ZonedDateTime.now());
     }
 }

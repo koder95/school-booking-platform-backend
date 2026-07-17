@@ -16,8 +16,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
@@ -25,8 +23,6 @@ import org.hibernate.annotations.SQLRestriction;
 @NoArgsConstructor
 @Accessors(chain = true)
 @Table(name = "availability_slots")
-@SQLDelete(sql = "UPDATE availability_slots SET is_deleted = true WHERE uuid = ?")
-@SQLRestriction("is_deleted = false")
 public class AvailabilitySlot {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -40,7 +36,6 @@ public class AvailabilitySlot {
     private Set<Teacher> teachers;
     @Column(nullable = false, unique = true)
     private ZonedDateTime timestamp;
-    private boolean isDeleted;
 
     public AvailabilitySlot addTeacher(Teacher teacher) {
         if (teachers == null) {

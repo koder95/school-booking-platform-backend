@@ -40,12 +40,30 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
         return createUniversalErrorMessageFormat(request, status, errors, new HttpHeaders());
     }
 
+    @ExceptionHandler(IllegalBookingException.class)
+    protected ResponseEntity<Object> handleIllegalBookingException(
+            IllegalBookingException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.FORBIDDEN;
+        return createUniversalErrorMessageFormat(request, status,
+                List.of(ex.getMessage()));
+    }
+
+    @ExceptionHandler(EmailDeliveryException.class)
+    protected ResponseEntity<Object> handleEmailDeliveryException(
+            EmailDeliveryException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        return createUniversalErrorMessageFormat(request, status,
+                List.of(ex.getMessage()));
+    }
+
     @ExceptionHandler(SQLException.class)
     protected ResponseEntity<Object> handleSqlException(
             SQLException ex, HttpServletRequest request) {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         return createUniversalErrorMessageFormat(request, status,
-                List.of("An database error occurred: " + ex.getErrorCode()));
+                List.of("An database error(%d) occurred with SQL state: %s"
+                        .formatted(ex.getErrorCode(), ex.getSQLState()))
+        );
     }
 
     @ExceptionHandler(EmailAlreadyExistsException.class)

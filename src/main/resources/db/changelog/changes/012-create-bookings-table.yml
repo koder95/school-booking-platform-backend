@@ -1,0 +1,37 @@
+databaseChangeLog:
+    - changeSet:
+        id: 012-create-bookings-table
+        author: Koder95
+        changes:
+          - createTable:
+              tableName: bookings
+              columns:
+                - column:
+                    name: uuid
+                    type: uuid
+                    constraints:
+                      primaryKey: true
+                      nullable: false
+                - column:
+                    name: lesson_uuid
+                    type: uuid
+                    constraints:
+                      nullable: false
+                      foreignKeyName: fk_bookings_lesson_uuid
+                      references: lessons(uuid)
+                      unique: true
+                      uniqueConstraintName: uq_student_lesson_uuids
+                - column:
+                    name: student_uuid
+                    type: uuid
+                    constraints:
+                      nullable: false
+                      foreignKeyName: fk_bookings_student_uuid
+                      references: students(uuid)
+                      unique: true
+                      uniqueConstraintName: uq_student_lesson_uuids
+                - column:
+                    name: booked_at
+                    type: timestamp with time zone
+                    constraints:
+                      nullable: false

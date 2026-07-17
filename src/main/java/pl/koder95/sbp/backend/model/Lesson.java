@@ -38,6 +38,6 @@ public class Lesson {
     @Column(nullable = false)
     private ZonedDateTime closingTime;
     @Column(nullable = false)
-    private Integer maxEnrolled;
+    private int maxEnrolled;
     private boolean isDeleted;
 }

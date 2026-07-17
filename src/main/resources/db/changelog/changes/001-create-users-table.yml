@@ -7,11 +7,15 @@ databaseChangeLog:
             tableName: users
             columns:
               - column:
-                  name: id
-                  type: bigint
-                  autoIncrement: true
+                  name: uuid
+                  type: uuid
                   constraints:
                     primaryKey: true
+                    nullable: false
+              - column:
+                  name: DTYPE
+                  type: varchar(250)
+                  constraints:
                     nullable: false
               - column:
                   name: email_id
@@ -24,11 +28,14 @@ databaseChangeLog:
               - column:
                   name: password_hash
                   type: varchar(128)
-                  constraints:
-                    nullable: false
               - column:
                   name: authority
                   type: varchar(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: zone_id
+                  type: varchar(64)
                   constraints:
                     nullable: false
               - column:
