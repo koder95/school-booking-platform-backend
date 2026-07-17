@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,8 @@ import pl.koder95.sbp.backend.service.AvailabilitySlotService;
 @Service
 @RequiredArgsConstructor
 public class AvailabilitySlotServiceImpl implements AvailabilitySlotService {
+    private static final Logger logger = LoggerFactory.getLogger(AvailabilitySlotServiceImpl.class);
+
     private final AvailabilitySlotRepository repository;
     private final AvailabilitySlotMapper mapper;
     private final AvailabilityService availabilityService;
@@ -88,8 +92,10 @@ public class AvailabilitySlotServiceImpl implements AvailabilitySlotService {
 
     private AvailabilitySlot createOrGetAvailabilitySlot(ZonedDateTime timestamp) {
         if (repository.existsByTimestamp(timestamp)) {
+            logger.info("Available slot localized: {}", timestamp);
             return repository.findByTimestamp(timestamp).orElseThrow();
         }
+        logger.info("New available slot created: {}", timestamp);
         return new AvailabilitySlot().setTimestamp(timestamp);
     }
 
