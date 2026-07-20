@@ -48,6 +48,14 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
                 List.of(ex.getMessage()));
     }
 
+    @ExceptionHandler(AdminAccountAlreadyExists.class)
+    protected ResponseEntity<Object> handleAdminAccountAlreadyExists(
+            AdminAccountAlreadyExists ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.FORBIDDEN;
+        return createUniversalErrorMessageFormat(request, status,
+                List.of(ex.getMessage()));
+    }
+
     @ExceptionHandler(EmailDeliveryException.class)
     protected ResponseEntity<Object> handleEmailDeliveryException(
             EmailDeliveryException ex, HttpServletRequest request) {

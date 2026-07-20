@@ -4,8 +4,6 @@ databaseChangeLog:
   - include:
       file: db/changelog/changes/001-create-users-table.yml
   - include:
-      file: db/changelog/changes/002-insert-admin-user.yml
-  - include:
       file: db/changelog/changes/003-create-email-delivery-logs-table.yml
   - include:
       file: db/changelog/changes/004-create-subjects-table.yml
