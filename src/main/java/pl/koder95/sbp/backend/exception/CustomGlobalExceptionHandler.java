@@ -25,7 +25,7 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
     private static ResponseEntity<Object> createUniversalErrorMessageFormat(
             HttpServletRequest request, HttpStatus status, List<String> errors, HttpHeaders headers
     ) {
-        return new ResponseEntity<>(new UniversalErrorMessageFormat(
+        return new ResponseEntity<>(new ErrorsCommonFormat(
                 status.value(),
                 status.getReasonPhrase(),
                 request.getMethod(),
@@ -111,9 +111,7 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex,
-            HttpHeaders headers,
-            HttpStatusCode httpStatusCode,
-            WebRequest request) {
+            HttpHeaders headers, HttpStatusCode httpStatusCode, WebRequest request) {
         HttpStatus status = HttpStatus.valueOf(httpStatusCode.value());
         HttpServletRequest servletRequest = ((ServletWebRequest) request).getRequest();
         return createUniversalErrorMessageFormat(servletRequest, status,
