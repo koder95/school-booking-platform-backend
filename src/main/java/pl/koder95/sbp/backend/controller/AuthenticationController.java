@@ -40,7 +40,7 @@ public class AuthenticationController {
 
     @Operation(summary = "Generate OTT token and send it")
     @PostMapping("/ott/generate")
-    public EmailDeliveryInfoDto sendOtt(GenerateOneTimeTokenRequestDto request) {
+    public EmailDeliveryInfoDto sendOtt(@RequestBody GenerateOneTimeTokenRequestDto request) {
         return oneTimeTokenAuthenticationService.generateOtt(request);
     }
 }
