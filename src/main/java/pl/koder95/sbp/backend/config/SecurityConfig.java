@@ -38,7 +38,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(BCryptPasswordEncoder.BCryptVersion.$2B, 12);
     }
 
     @Bean
@@ -47,7 +47,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**"
+                                "/api/auth/**", "/swagger-ui/**", "/v3/api-docs/**",
+                                "/api/setup/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/lessons", "/api/lessons/*",
