@@ -1,0 +1,19 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-configs-table
+      author: Koder95
+      changes:
+        - createTable:
+            tableName: configs
+            columns:
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: value
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
