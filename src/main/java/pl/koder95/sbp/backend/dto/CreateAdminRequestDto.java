@@ -7,7 +7,7 @@ import java.time.ZoneId;
 
 public record CreateAdminRequestDto(
         @NotBlank @Email String email,
-        @NotBlank @Size(min = 15) String password,
+        @NotBlank @Size(min = 10) String password,
         ZoneId zoneId
 ) {
 }
