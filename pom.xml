@@ -10,7 +10,7 @@
     </parent>
     <groupId>pl.koder95</groupId>
     <artifactId>school-booking-platform-backend</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>${revision}</version>
     <name>School Booking Platform Backend</name>
     <description>The backend for the School Booking Platform</description>
     <properties>
@@ -19,6 +19,7 @@
         <mapstruct.version>1.6.3</mapstruct.version>
         <lombok.mapstruct.binding.version>0.2.0</lombok.mapstruct.binding.version>
         <jjwt.version>0.13.0</jjwt.version>
+        <revision>1.0-SNAPSHOT</revision>
     </properties>
     <dependencies>
         <dependency>
@@ -120,7 +121,17 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

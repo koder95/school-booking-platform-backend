@@ -1,12 +1,14 @@
 FROM eclipse-temurin:21-jdk as builder
 LABEL authors="Koder95"
 WORKDIR school-booking-platform-backend
+ARG SBP_BACKEND_VERSION=1.0-SNAPSHOT
 COPY src/ ./src
 COPY mvnw ./
+RUN chmod +x mvnw
 COPY .mvn/ ./.mvn/
 COPY pom.xml ./
 COPY checkstyle.xml ./
-RUN ./mvnw clean package -DskipTests
+RUN ./mvnw clean package -DskipTests -Drevision=${SBP_BACKEND_VERSION}
 ARG JAR_FILE=target/*.jar
 RUN cp ${JAR_FILE} sbpb.jar
 RUN java -Djarmode=tools -jar sbpb.jar extract --layers --launcher
