@@ -4,6 +4,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.koder95.sbp.backend.dto.CreateLessonRequestDto;
@@ -11,12 +12,16 @@ import pl.koder95.sbp.backend.dto.LessonDto;
 import pl.koder95.sbp.backend.dto.UpdateLessonRequestDto;
 import pl.koder95.sbp.backend.exception.EntityNotFoundException;
 import pl.koder95.sbp.backend.mapper.LessonMapper;
+import pl.koder95.sbp.backend.model.Authority;
 import pl.koder95.sbp.backend.model.Lesson;
+import pl.koder95.sbp.backend.model.Student;
+import pl.koder95.sbp.backend.model.User;
 import pl.koder95.sbp.backend.repository.AvailabilitySlotRepository;
 import pl.koder95.sbp.backend.repository.BookingRepository;
 import pl.koder95.sbp.backend.repository.LessonRepository;
 import pl.koder95.sbp.backend.repository.SubjectRepository;
 import pl.koder95.sbp.backend.repository.TeacherRepository;
+import pl.koder95.sbp.backend.security.AuthenticationUtil;
 import pl.koder95.sbp.backend.service.LessonService;
 
 @Service
@@ -28,6 +33,7 @@ public class LessonServiceImpl implements LessonService {
     private final TeacherRepository teacherRepository;
     private final SubjectRepository subjectRepository;
     private final BookingRepository bookingRepository;
+    private final AuthenticationUtil authenticationUtil;
 
     @Override
     @Transactional
@@ -70,5 +76,28 @@ public class LessonServiceImpl implements LessonService {
         );
         repository.delete(lesson);
         return mapper.toDto(lesson, bookingRepository);
+    }
+
+    @Override
+    public Page<LessonDto> findAllBooked(Pageable pageable) {
+        User user = authenticationUtil.getAuthenticated();
+        if (user == null) {
+            throw new AccessDeniedException("Access denied");
+        } else if (user instanceof Student student) {
+            return findAllBookedForStudent(student, pageable);
+        } else if (user.getAuthority() == Authority.ROLE_ADMIN) {
+            return findAllBookedForAdmin(pageable);
+        }
+        throw new AccessDeniedException("Access denied for user: " + user.getUuid());
+    }
+
+    private Page<LessonDto> findAllBookedForAdmin(Pageable pageable) {
+        return repository.findAllByBookingsNotEmpty(pageable)
+                .map(lesson -> mapper.toDto(lesson, bookingRepository));
+    }
+
+    private Page<LessonDto> findAllBookedForStudent(Student student, Pageable pageable) {
+        return repository.findAllByBookingsOfStudent(student, pageable)
+                .map(lesson -> mapper.toDto(lesson, bookingRepository));
     }
 }
