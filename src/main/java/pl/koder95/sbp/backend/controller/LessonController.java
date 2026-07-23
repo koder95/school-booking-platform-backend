@@ -80,14 +80,12 @@ public class LessonController {
     @GetMapping("/booked")
     @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
     @SecurityRequirement(name = "bearer-key")
-    @Operation(summary = "Get all booked lessons",
-            description = """
-                    Get all booked lesson with pagination.
-                    If you use this as a user with admin role,
-                    it returns a booked lessons for all students.
-                    If you use this as a user with student role,
-                    it returns a booked lessons for your account.
-                    """)
+    @Operation(summary = "Get all booked lessons", description = """
+            Get all booked lessons by page and include the following roles:
+            
+            - If you do this as an administrator, you'll get booked lessons **for all students**.
+            - If you do this as a student, you'll get booked lessons **for yourself**.
+            """)
     public Page<LessonDto> getBooked(@ParameterObject Pageable pageable) {
         return lessonService.findAllBooked(pageable);
     }

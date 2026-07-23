@@ -9,14 +9,19 @@ import pl.koder95.sbp.backend.model.User;
 
 @Component
 public class AuthenticationUtil {
-    public User getAuthenticated() {
+    private static Authentication getAuthentication() {
         SecurityContext securityContext = SecurityContextHolder.getContext();
-        Authentication authentication = securityContext.getAuthentication();
-        if (authentication == null) {
+        if (securityContext.getAuthentication() == null) {
             return null;
         }
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof User user) {
+        return securityContext.getAuthentication();
+    }
+
+    public User getAuthenticated() {
+        Authentication authentication = getAuthentication();
+        if (authentication == null) {
+            return null;
+        } else if (authentication.getPrincipal() instanceof User user) {
             return user;
         }
         return null;
