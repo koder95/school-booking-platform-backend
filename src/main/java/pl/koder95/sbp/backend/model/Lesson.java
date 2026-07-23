@@ -5,8 +5,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.ZonedDateTime;
+import java.util.Set;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,5 +41,7 @@ public class Lesson {
     private ZonedDateTime closingTime;
     @Column(nullable = false)
     private int maxEnrolled;
+    @OneToMany(mappedBy = "lesson")
+    private Set<Booking> bookings;
     private boolean isDeleted;
 }

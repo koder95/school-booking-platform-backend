@@ -17,4 +17,6 @@ public interface LessonService {
     LessonDto update(UUID lessonUuid, UpdateLessonRequestDto requestDto);
 
     LessonDto deleteById(UUID lessonUuid);
+
+    Page<LessonDto> findAllBooked(Pageable pageable);
 }

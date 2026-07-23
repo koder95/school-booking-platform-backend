@@ -1,4 +1,7 @@
 # School Booking Platform Backend
+[![Java CI](https://github.com/koder95/school-booking-platform-backend/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/koder95/school-booking-platform-backend/actions/workflows/ci.yml)
+[![Build and Push Docker Image](https://github.com/koder95/school-booking-platform-backend/actions/workflows/cd.yml/badge.svg?branch=master)](https://github.com/koder95/school-booking-platform-backend/actions/workflows/cd.yml)
+
 This repository contains the backend service for the **School Booking Platform**.
 
 This README describes the available REST endpoints and the JSON request/response
@@ -20,7 +23,7 @@ schemas used by the API.
 ## Requirements
 Minimum recommended environment to run the project locally:
 
-- Java 17 (or newer) and a compatible JDK installed (or use the bundled `./mvnw` wrapper).
+- Java 21 (or newer) and a compatible JDK installed (or use the bundled `./mvnw` wrapper).
 - Maven (if not using `./mvnw`).
 - PostgreSQL 12+ (for production/local DB). Connection is configured via Spring properties (see `application.properties`).
 - Docker & Docker Compose (recommended for local development and MailHog service).
