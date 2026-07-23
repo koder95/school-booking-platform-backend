@@ -23,7 +23,7 @@ schemas used by the API.
 ## Requirements
 Minimum recommended environment to run the project locally:
 
-- Java 17 (or newer) and a compatible JDK installed (or use the bundled `./mvnw` wrapper).
+- Java 21 (or newer) and a compatible JDK installed (or use the bundled `./mvnw` wrapper).
 - Maven (if not using `./mvnw`).
 - PostgreSQL 12+ (for production/local DB). Connection is configured via Spring properties (see `application.properties`).
 - Docker & Docker Compose (recommended for local development and MailHog service).
