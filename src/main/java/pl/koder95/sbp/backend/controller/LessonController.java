@@ -76,4 +76,19 @@ public class LessonController {
     public LessonDto delete(@PathVariable UUID lessonUuid) {
         return lessonService.deleteById(lessonUuid);
     }
+
+    @GetMapping("/booked")
+    @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
+    @Operation(summary = "Get all booked lessons",
+            description = """
+                    Get all booked lesson with pagination.
+                    If you use this as a user with admin role,
+                    it returns a booked lessons for all students.
+                    If you use this as a user with student role,
+                    it returns a booked lessons for your account.
+                    """)
+    public Page<LessonDto> getBooked(@ParameterObject Pageable pageable) {
+        return lessonService.findAllBooked(pageable);
+    }
 }
