@@ -9,6 +9,8 @@ import java.time.ZonedDateTime;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.ott.OneTimeToken;
@@ -105,5 +107,15 @@ public class EmailDeliveryServiceImpl
         return new EmailDeliveryInfoDto(
                 createdAt, DeliveryStatus.SENT, null, username
         );
+    }
+
+    @Override
+    public Page<EmailDeliveryInfoDto> getAll(Pageable pageable) {
+        return logRepository.findAll(pageable).map(log -> new EmailDeliveryInfoDto(
+                log.getCreatedAt(),
+                log.getStatus(),
+                log.getErrorMessage(),
+                log.getRecipient().getValue()
+        ));
     }
 }
