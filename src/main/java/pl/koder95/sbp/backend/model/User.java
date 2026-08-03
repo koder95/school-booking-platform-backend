@@ -35,6 +35,7 @@ public class User implements UserDetails {
     @OneToOne
     private Email email;
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, updatable = false)
     private Authority authority;
     private String passwordHash;
     @Column(nullable = false, length = 64)
@@ -71,5 +72,12 @@ public class User implements UserDetails {
     @Override
     public int hashCode() {
         return Objects.hash(getEmail(), getAuthority());
+    }
+
+    public void setAuthority(Authority authority) {
+        if (uuid != null) {
+            throw new IllegalStateException("Authority cannot be changed after user is persisted");
+        }
+        this.authority = authority;
     }
 }
