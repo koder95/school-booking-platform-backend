@@ -35,3 +35,9 @@ databaseChangeLog:
                     type: timestamp with time zone
                     constraints:
                       nullable: false
+                - column:
+                    name: is_accepted
+                    type: boolean
+                    defaultValueBoolean: false
+                    constraints:
+                      nullable: false

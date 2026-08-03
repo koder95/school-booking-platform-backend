@@ -38,10 +38,13 @@ public class Booking {
     private Lesson lesson;
     @Column(nullable = false)
     private ZonedDateTime bookedAt;
+    @Column(nullable = false)
+    private boolean isAccepted = false;
 
     public Booking(Student student, Lesson lesson) {
         this.student = student;
         this.lesson = lesson;
         this.bookedAt = ZonedDateTime.now(student.getZoneId());
+        this.isAccepted = !student.isTrial();
     }
 }
