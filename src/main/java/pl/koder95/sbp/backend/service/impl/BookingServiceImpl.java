@@ -2,10 +2,16 @@ package pl.koder95.sbp.backend.service.impl;
 
 import java.time.ZonedDateTime;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pl.koder95.sbp.backend.dto.BookingDecisionDto;
 import pl.koder95.sbp.backend.dto.BookingDto;
 import pl.koder95.sbp.backend.dto.SendEmailRequestDto;
 import pl.koder95.sbp.backend.exception.EntityNotFoundException;
@@ -22,6 +28,7 @@ import pl.koder95.sbp.backend.service.EmailDeliveryService;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository repository;
     private final BookingMapper mapper;
@@ -54,6 +61,37 @@ public class BookingServiceImpl implements BookingService {
                 createEmailBody(saved.getUuid(), lesson.getStartTime(), student.isTrial())
         ));
         return mapper.toDto(saved);
+    }
+
+    @Override
+    public Page<BookingDto> getAllNotAcceptedYetBookings(Pageable pageable) {
+        return repository.findNotAcceptedYet(pageable).map(mapper::toDto);
+    }
+
+    @Override
+    public Page<BookingDto> getAll(Pageable pageable) {
+        return repository.findAll(pageable).map(mapper::toDto);
+    }
+
+    @Override
+    @Transactional
+    public Page<BookingDto> applyDecision(BookingDecisionDto decision, Pageable pageable) {
+        Set<Booking> accepted = decision.accepted().stream()
+                .map(uuid -> repository.findById(uuid).orElseThrow(
+                        () -> new EntityNotFoundException("booking not found: " + uuid))
+                )
+                .collect(Collectors.toSet());
+        accepted.forEach(booking -> booking.setAccepted(true));
+        repository.saveAll(accepted);
+        log.info("Decision ACCEPT applied to bookings: {}", accepted);
+        Set<Booking> rejected = decision.rejected().stream()
+                .map(uuid -> repository.findById(uuid).orElseThrow(
+                        () -> new EntityNotFoundException("booking not found: " + uuid))
+                )
+                .collect(Collectors.toSet());
+        repository.deleteAll(rejected);
+        log.info("Decision REJECT applied to bookings: {}", rejected);
+        return getAll(pageable);
     }
 
     private String createEmailBody(UUID uuid, ZonedDateTime startTime, boolean trial) {
