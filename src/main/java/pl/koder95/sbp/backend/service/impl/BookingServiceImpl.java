@@ -1,11 +1,13 @@
 package pl.koder95.sbp.backend.service.impl;
 
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.koder95.sbp.backend.dto.BookingDto;
+import pl.koder95.sbp.backend.dto.SendEmailRequestDto;
 import pl.koder95.sbp.backend.exception.EntityNotFoundException;
 import pl.koder95.sbp.backend.exception.IllegalBookingException;
 import pl.koder95.sbp.backend.mapper.BookingMapper;
@@ -16,6 +18,7 @@ import pl.koder95.sbp.backend.repository.BookingRepository;
 import pl.koder95.sbp.backend.repository.LessonRepository;
 import pl.koder95.sbp.backend.security.AuthenticationUtil;
 import pl.koder95.sbp.backend.service.BookingService;
+import pl.koder95.sbp.backend.service.EmailDeliveryService;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +27,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingMapper mapper;
     private final LessonRepository lessonRepository;
     private final AuthenticationUtil authenticationUtil;
+    private final EmailDeliveryService emailDeliveryService;
 
     @Override
     @Transactional
@@ -43,6 +47,29 @@ public class BookingServiceImpl implements BookingService {
         if (enrolled >= lesson.getMaxEnrolled()) {
             throw new IllegalBookingException("no more free slots for lesson: " + lessonUuid);
         }
-        return mapper.toDto(repository.save(created));
+        Booking saved = repository.save(created);
+        emailDeliveryService.send(new SendEmailRequestDto(
+                student.getEmail().getValue(),
+                "Booking status",
+                createEmailBody(saved.getUuid(), lesson.getStartTime(), student.isTrial())
+        ));
+        return mapper.toDto(saved);
+    }
+
+    private String createEmailBody(UUID uuid, ZonedDateTime startTime, boolean trial) {
+        String form = "<html><body>"
+                + "<h1>Booking status</h1><p>%s</p><p>%s</p><p>%s</p>"
+                + "</body></html>";
+        String firstParagraph = trial
+                  ? """
+                  Your booking has been created and is pending approval.
+                  We will notify you once it has been accepted.
+                  Until then, your booking is temporary confirmed but it could be changed.
+                  If your booking won't be rejected, you will be able to attend the lesson.
+                  """
+                 : "Your booking has been confirmed.";
+        String secondParagraph = "Booking ID: " + uuid;
+        String thirdParagraph = "Lesson start time: " + startTime;
+        return String.format(form, firstParagraph, secondParagraph, thirdParagraph);
     }
 }
