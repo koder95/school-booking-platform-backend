@@ -10,7 +10,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 import lombok.Getter;
@@ -38,10 +37,13 @@ public class Booking {
     private Lesson lesson;
     @Column(nullable = false)
     private ZonedDateTime bookedAt;
+    @Column(nullable = false)
+    private boolean isAccepted = false;
 
-    public Booking(Student student, Lesson lesson, LocalDateTime bookedAt) {
+    public Booking(Student student, Lesson lesson) {
         this.student = student;
         this.lesson = lesson;
-        this.bookedAt = bookedAt.atZone(student.getZoneId());
+        this.bookedAt = ZonedDateTime.now(student.getZoneId());
+        this.isAccepted = !student.isTrial();
     }
 }

@@ -7,6 +7,7 @@ import java.time.ZoneId;
 
 public record CreateStudentRequestDto(
         @Email @NotBlank String email,
-        @NotNull ZoneId zoneId
+        @NotNull ZoneId zoneId,
+        Boolean isTrial
 ) {
 }

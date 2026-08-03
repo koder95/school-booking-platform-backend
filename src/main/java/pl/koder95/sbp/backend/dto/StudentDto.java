@@ -6,6 +6,7 @@ import java.util.UUID;
 public record StudentDto(
         UUID uuid,
         String email,
-        ZoneId zoneId
+        ZoneId zoneId,
+        boolean isTrial
 ) {
 }

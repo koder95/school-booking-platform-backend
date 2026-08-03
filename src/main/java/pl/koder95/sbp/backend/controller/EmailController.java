@@ -11,7 +11,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import pl.koder95.sbp.backend.dto.EmailDeliveryInfoDto;
 import pl.koder95.sbp.backend.dto.EmailDto;
+import pl.koder95.sbp.backend.service.EmailDeliveryService;
 import pl.koder95.sbp.backend.service.EmailService;
 
 @SecurityRequirement(name = "bearer-key")
@@ -21,6 +23,7 @@ import pl.koder95.sbp.backend.service.EmailService;
 @RequestMapping("/api/emails")
 public class EmailController {
     private final EmailService emailService;
+    private final EmailDeliveryService emailDeliveryService;
 
     @Operation(summary = "Get all emails",
             description = "Retrieve a paginated list of emails")
@@ -28,5 +31,13 @@ public class EmailController {
     @PreAuthorize("hasRole('ADMIN')")
     public Page<EmailDto> getAll(@ParameterObject Pageable pageable) {
         return emailService.getAll(pageable);
+    }
+
+    @Operation(summary = "Get all email delivery logs",
+            description = "Retrieve a paginated list of email delivery logs")
+    @GetMapping("/delivery/logs")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Page<EmailDeliveryInfoDto> getAllDeliveryLogs(@ParameterObject Pageable pageable) {
+        return emailDeliveryService.getAll(pageable);
     }
 }

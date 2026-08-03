@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public record LessonDto(
         UUID lessonUuid,
+        ZonedDateTime startTime,
         Long subjectId,
         UUID teacherUuid,
         Integer maxEnrolled,
