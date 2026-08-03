@@ -1,6 +1,5 @@
 package pl.koder95.sbp.backend.service.impl;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +35,7 @@ public class BookingServiceImpl implements BookingService {
         Lesson lesson = lessonRepository.findById(lessonUuid).orElseThrow(
                 () -> new EntityNotFoundException("lesson not found: " + lessonUuid)
         );
-        Booking created = new Booking(student, lesson, LocalDateTime.now());
+        Booking created = new Booking(student, lesson);
         if (created.getBookedAt().isAfter(lesson.getClosingTime())) {
             throw new IllegalBookingException("booking was closed for lesson: " + lessonUuid);
         }

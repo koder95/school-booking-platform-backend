@@ -39,9 +39,9 @@ public class Booking {
     @Column(nullable = false)
     private ZonedDateTime bookedAt;
 
-    public Booking(Student student, Lesson lesson, LocalDateTime bookedAt) {
+    public Booking(Student student, Lesson lesson) {
         this.student = student;
         this.lesson = lesson;
-        this.bookedAt = bookedAt.atZone(student.getZoneId());
+        this.bookedAt = ZonedDateTime.now(student.getZoneId());
     }
 }
