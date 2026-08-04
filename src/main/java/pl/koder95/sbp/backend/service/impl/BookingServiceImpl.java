@@ -80,6 +80,7 @@ public class BookingServiceImpl implements BookingService {
                 .map(uuid -> repository.findById(uuid).orElseThrow(
                         () -> new EntityNotFoundException("booking not found: " + uuid))
                 )
+                .filter(booking -> !booking.isAccepted())
                 .collect(Collectors.toSet());
         accepted.forEach(booking -> booking.setAccepted(true));
         repository.saveAll(accepted);
@@ -88,6 +89,7 @@ public class BookingServiceImpl implements BookingService {
                 .map(uuid -> repository.findById(uuid).orElseThrow(
                         () -> new EntityNotFoundException("booking not found: " + uuid))
                 )
+                .filter(booking -> !booking.isAccepted())
                 .collect(Collectors.toSet());
         repository.deleteAll(rejected);
         log.info("Decision REJECT applied to bookings: {}", rejected);
