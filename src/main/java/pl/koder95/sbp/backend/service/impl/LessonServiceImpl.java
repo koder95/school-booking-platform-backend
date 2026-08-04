@@ -1,5 +1,6 @@
 package pl.koder95.sbp.backend.service.impl;
 
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,8 +14,10 @@ import pl.koder95.sbp.backend.dto.UpdateLessonRequestDto;
 import pl.koder95.sbp.backend.exception.EntityNotFoundException;
 import pl.koder95.sbp.backend.mapper.LessonMapper;
 import pl.koder95.sbp.backend.model.Authority;
+import pl.koder95.sbp.backend.model.AvailabilitySlot;
 import pl.koder95.sbp.backend.model.Lesson;
 import pl.koder95.sbp.backend.model.Student;
+import pl.koder95.sbp.backend.model.Teacher;
 import pl.koder95.sbp.backend.model.User;
 import pl.koder95.sbp.backend.repository.AvailabilitySlotRepository;
 import pl.koder95.sbp.backend.repository.BookingRepository;
@@ -41,7 +44,17 @@ public class LessonServiceImpl implements LessonService {
         Lesson saved = repository.save(mapper.toModel(
                 requestDto, availabilitySlotRepository, teacherRepository, subjectRepository
         ));
-        availabilitySlotRepository.deleteById(requestDto.availabilitySlotUuid());
+        Optional<AvailabilitySlot> slotOpt = availabilitySlotRepository
+                .findById(requestDto.availabilitySlotUuid());
+        if (slotOpt.isPresent()) {
+            AvailabilitySlot slot = slotOpt.get();
+            Teacher teacher = saved.getAssigned();
+            slot.removeTeacher(teacher);
+            slot = availabilitySlotRepository.save(slot);
+            if (slot.getTeachers().isEmpty()) {
+                availabilitySlotRepository.deleteById(requestDto.availabilitySlotUuid());
+            }
+        }
         return mapper.toDto(saved, bookingRepository);
     }
 

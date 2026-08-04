@@ -16,8 +16,6 @@ import pl.koder95.sbp.backend.repository.TeacherRepository;
 
 @Mapper(config = MapperConfig.class)
 public interface LessonMapper {
-    @Mapping(target = "uuid", expression = "java(availabilitySlotRepository"
-            + ".findById(dto.availabilitySlotUuid()).orElseThrow().getUuid())")
     @Mapping(target = "assigned", expression = "java(teacherRepository"
             + ".findById(dto.teacherUuid()).orElseThrow())")
     @Mapping(target = "subject", expression = "java(teacherRepository"
