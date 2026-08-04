@@ -22,6 +22,7 @@ import pl.koder95.sbp.backend.model.Lesson;
 import pl.koder95.sbp.backend.model.Student;
 import pl.koder95.sbp.backend.repository.BookingRepository;
 import pl.koder95.sbp.backend.repository.LessonRepository;
+import pl.koder95.sbp.backend.repository.StudentRepository;
 import pl.koder95.sbp.backend.security.AuthenticationUtil;
 import pl.koder95.sbp.backend.service.BookingService;
 import pl.koder95.sbp.backend.service.EmailDeliveryService;
@@ -35,14 +36,9 @@ public class BookingServiceImpl implements BookingService {
     private final LessonRepository lessonRepository;
     private final AuthenticationUtil authenticationUtil;
     private final EmailDeliveryService emailDeliveryService;
+    private final StudentRepository studentRepository;
 
-    @Override
-    @Transactional
-    public BookingDto book(UUID lessonUuid) {
-        Student student = Optional.ofNullable(authenticationUtil.getAuthenticatedStudent())
-                .orElseThrow(() -> new IllegalBookingException(
-                        "booking requires authentication by student"
-                ));
+    private BookingDto bookAs(Student student, UUID lessonUuid) {
         Lesson lesson = lessonRepository.findById(lessonUuid).orElseThrow(
                 () -> new EntityNotFoundException("lesson not found: " + lessonUuid)
         );
@@ -61,6 +57,25 @@ public class BookingServiceImpl implements BookingService {
                 createEmailBody(saved.getUuid(), lesson.getStartTime(), student.isTrial())
         ));
         return mapper.toDto(saved);
+    }
+
+    @Override
+    @Transactional
+    public BookingDto book(UUID lessonUuid, UUID studentUuid) {
+        Student student = studentRepository.findById(studentUuid).orElseThrow(
+                () -> new EntityNotFoundException("student not found: " + studentUuid)
+        );
+        return bookAs(student, lessonUuid);
+    }
+
+    @Override
+    @Transactional
+    public BookingDto book(UUID lessonUuid) {
+        Student student = Optional.ofNullable(authenticationUtil.getAuthenticatedStudent())
+                .orElseThrow(() -> new IllegalBookingException(
+                        "booking requires authentication by student"
+                ));
+        return bookAs(student, lessonUuid);
     }
 
     @Override
