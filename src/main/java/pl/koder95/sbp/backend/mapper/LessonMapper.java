@@ -33,7 +33,6 @@ public interface LessonMapper {
                    @Context TeacherRepository teacherRepository,
                    @Context SubjectRepository subjectRepository);
 
-    @Mapping(target = "lessonUuid", source = "uuid")
     @Mapping(target = "subjectId", source = "subject.id")
     @Mapping(target = "teacherUuid", source = "assigned.uuid")
     @Mapping(target = "enrolled",
