@@ -59,7 +59,7 @@ public class LessonServiceImpl implements LessonService {
     }
 
     @Override
-    public Page<LessonDto> findAll(Pageable pageable) {
+    public Page<LessonDto> getAll(Pageable pageable) {
         return repository.findAll(pageable)
                 .map(lesson -> mapper.toDto(lesson, bookingRepository));
     }
@@ -92,7 +92,7 @@ public class LessonServiceImpl implements LessonService {
     }
 
     @Override
-    public Page<LessonDto> findAllBooked(Pageable pageable) {
+    public Page<LessonDto> getAllBooked(Pageable pageable) {
         User user = authenticationUtil.getAuthenticated();
         if (user == null) {
             throw new AccessDeniedException("Access denied");

@@ -10,7 +10,7 @@ import pl.koder95.sbp.backend.dto.UpdateLessonRequestDto;
 public interface LessonService {
     LessonDto create(CreateLessonRequestDto requestDto);
 
-    Page<LessonDto> findAll(Pageable pageable);
+    Page<LessonDto> getAll(Pageable pageable);
 
     LessonDto getByUuid(UUID lessonUuid);
 
@@ -18,5 +18,5 @@ public interface LessonService {
 
     LessonDto deleteById(UUID lessonUuid);
 
-    Page<LessonDto> findAllBooked(Pageable pageable);
+    Page<LessonDto> getAllBooked(Pageable pageable);
 }
