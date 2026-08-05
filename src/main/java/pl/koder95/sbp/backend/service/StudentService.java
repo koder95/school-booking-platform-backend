@@ -12,4 +12,6 @@ public interface StudentService {
     StudentDto get(UUID studentUuid);
 
     StudentDto create(CreateStudentRequestDto dto);
+
+    long count();
 }
