@@ -40,6 +40,14 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
         return createUniversalErrorMessageFormat(request, status, errors, new HttpHeaders());
     }
 
+    @ExceptionHandler(ExamplesInstallationException.class)
+    protected ResponseEntity<Object> handleExamplesInstallationException(
+            ExamplesInstallationException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        return createUniversalErrorMessageFormat(request, status,
+                List.of(ex.getMessage()));
+    }
+
     @ExceptionHandler(IllegalBookingException.class)
     protected ResponseEntity<Object> handleIllegalBookingException(
             IllegalBookingException ex, HttpServletRequest request) {
