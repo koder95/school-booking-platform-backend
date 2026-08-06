@@ -6,7 +6,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
@@ -41,12 +40,7 @@ public class Teacher {
     @ManyToOne
     @JoinColumn(nullable = false)
     private Subject subject;
-    @ManyToMany
-    @JoinTable(
-            name = "teachers_availability_slots",
-            joinColumns = @JoinColumn(name = "teacher_uuid"),
-            inverseJoinColumns = @JoinColumn(name = "availability_slot_uuid")
-    )
+    @ManyToMany(mappedBy = "teachers")
     private Set<AvailabilitySlot> availabilitySlots;
     @Column(nullable = false, length = 64)
     private ZoneId zoneId = ZoneId.systemDefault();
