@@ -40,4 +40,6 @@ public interface AvailabilitySlotService {
     Page<AvailabilitySlotDto> getAll(Pageable pageable);
 
     Page<AvailabilitySlotDto> createOrGetAll(Pageable pageable);
+
+    void cleanOldAvailabilitySlots();
 }

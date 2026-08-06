@@ -1,22 +1,19 @@
 package pl.koder95.sbp.backend.config;
 
-import java.time.ZonedDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.transaction.annotation.Transactional;
-import pl.koder95.sbp.backend.repository.AvailabilitySlotRepository;
+import pl.koder95.sbp.backend.service.AvailabilitySlotService;
 
 @Configuration
 @EnableScheduling
 @RequiredArgsConstructor
 public class TaskScheduledConfig {
-    private final AvailabilitySlotRepository availabilitySlotRepository;
+    private final AvailabilitySlotService availabilitySlotService;
 
     @Scheduled(cron = "0 0 * * * *")
-    @Transactional
     public void cleanAvailabilitySlots() {
-        availabilitySlotRepository.deleteByTimestampBefore(ZonedDateTime.now());
+        availabilitySlotService.cleanOldAvailabilitySlots();
     }
 }

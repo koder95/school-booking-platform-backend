@@ -55,6 +55,16 @@ public class AvailabilitySlotServiceImpl implements AvailabilitySlotService {
 
     @Override
     @Transactional
+    public void cleanOldAvailabilitySlots() {
+        List<AvailabilitySlot> oldSlots = repository.findAllByTimestampBefore(ZonedDateTime.now());
+        oldSlots.forEach(slot -> {
+            slot.getTeachers().clear();
+            repository.delete(slot);
+        });
+    }
+
+    @Override
+    @Transactional
     public List<AvailabilitySlotDto> createOrGetFor(
             UUID teacherUuid, ZonedDateTime startTime, ZonedDateTime endTime
     ) {

@@ -80,5 +80,5 @@ public interface AvailabilitySlotRepository extends JpaRepository<AvailabilitySl
 
     Optional<AvailabilitySlot> findByTimestamp(ZonedDateTime timestamp);
 
-    void deleteByTimestampBefore(ZonedDateTime timestamp);
+    List<AvailabilitySlot> findAllByTimestampBefore(ZonedDateTime now);
 }
