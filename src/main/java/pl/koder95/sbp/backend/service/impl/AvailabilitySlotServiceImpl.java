@@ -4,6 +4,7 @@ import java.time.Period;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -80,11 +81,14 @@ public class AvailabilitySlotServiceImpl implements AvailabilitySlotService {
     }
 
     private void saveNonExistent(Teacher teacher, List<ZonedDateTime> timestamps) {
-        List<ZonedDateTime> existent = teacher.getAvailabilitySlots().stream()
-                .map(AvailabilitySlot::getTimestamp)
-                .toList();
-        timestamps = new ArrayList<>(timestamps);
-        timestamps.removeAll(existent);
+        Set<AvailabilitySlot> availabilitySlots = teacher.getAvailabilitySlots();
+        if (availabilitySlots != null) { // entity is persisted and has relations
+            List<ZonedDateTime> existent = availabilitySlots.stream()
+                    .map(AvailabilitySlot::getTimestamp)
+                    .toList();
+            timestamps = new ArrayList<>(timestamps);
+            timestamps.removeAll(existent);
+        }
         repository.saveAll(timestamps.stream().map(
                 timestamp -> createOrGetAvailabilitySlot(timestamp).addTeacher(teacher)
         ).toList());
