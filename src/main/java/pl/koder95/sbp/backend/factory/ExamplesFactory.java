@@ -5,5 +5,5 @@ import org.springframework.data.domain.Pageable;
 import pl.koder95.sbp.backend.dto.BookingDto;
 
 public interface ExamplesFactory {
-    Page<BookingDto> createExamples(Pageable pageable);
+    Page<BookingDto> createExamples(int step, Pageable pageable);
 }

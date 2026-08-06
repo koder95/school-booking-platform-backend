@@ -50,6 +50,7 @@ public class LessonServiceImpl implements LessonService {
             AvailabilitySlot slot = slotOpt.get();
             Teacher teacher = saved.getAssigned();
             slot.removeTeacher(teacher);
+            teacher.getAvailabilitySlots().remove(slot);
             slot = availabilitySlotRepository.save(slot);
             if (slot.getTeachers().isEmpty()) {
                 availabilitySlotRepository.deleteById(requestDto.availabilitySlotUuid());

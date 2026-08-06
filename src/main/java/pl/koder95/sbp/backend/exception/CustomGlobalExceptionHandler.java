@@ -44,8 +44,11 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
     protected ResponseEntity<Object> handleExamplesInstallationException(
             ExamplesInstallationException ex, HttpServletRequest request) {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-        return createUniversalErrorMessageFormat(request, status,
-                List.of(ex.getMessage()));
+        Throwable cause = ex.getCause();
+        return createUniversalErrorMessageFormat(request, status, cause == null
+                ? List.of(ex.getMessage())
+                : List.of(ex.getMessage(), cause.getMessage())
+        );
     }
 
     @ExceptionHandler(IllegalBookingException.class)

@@ -47,7 +47,7 @@ public class SetupServiceImpl implements SetupService {
     }
 
     @Override
-    public Page<BookingDto> installExamples(Pageable pageable) {
-        return examplesFactory.createExamples(pageable);
+    public Page<BookingDto> installExamples(int step, Pageable pageable) {
+        return examplesFactory.createExamples(step, pageable);
     }
 }

@@ -9,5 +9,5 @@ import pl.koder95.sbp.backend.dto.CreateAdminResponseDto;
 public interface SetupService {
     CreateAdminResponseDto createAdmin(CreateAdminRequestDto requestDto);
 
-    Page<BookingDto> installExamples(Pageable pageable);
+    Page<BookingDto> installExamples(int step, Pageable pageable);
 }

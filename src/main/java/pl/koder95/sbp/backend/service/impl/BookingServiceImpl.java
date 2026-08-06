@@ -4,6 +4,7 @@ import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,25 +38,39 @@ public class BookingServiceImpl implements BookingService {
     private final AuthenticationUtil authenticationUtil;
     private final EmailDeliveryService emailDeliveryService;
     private final StudentRepository studentRepository;
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     private BookingDto bookAs(Student student, UUID lessonUuid) {
-        Lesson lesson = lessonRepository.findById(lessonUuid).orElseThrow(
-                () -> new EntityNotFoundException("lesson not found: " + lessonUuid)
-        );
-        Booking created = new Booking(student, lesson);
-        if (created.getBookedAt().isAfter(lesson.getClosingTime())) {
-            throw new IllegalBookingException("booking was closed for lesson: " + lessonUuid);
+        Lesson lesson;
+        Booking created;
+        try {
+            lock.readLock().lock();
+            lesson = lessonRepository.findById(lessonUuid).orElseThrow(
+                    () -> new EntityNotFoundException("lesson not found: " + lessonUuid)
+            );
+            created = new Booking(student, lesson);
+            if (created.getBookedAt().isAfter(lesson.getClosingTime())) {
+                throw new IllegalBookingException("booking was closed for lesson: " + lessonUuid);
+            }
+        } finally {
+            lock.readLock().unlock();
         }
-        long enrolled = repository.countDistinctByLesson(lesson);
-        if (enrolled >= lesson.getMaxEnrolled()) {
-            throw new IllegalBookingException("no more free slots for lesson: " + lessonUuid);
+        Booking saved;
+        try {
+            lock.writeLock().lock();
+            long enrolled = repository.countDistinctByLesson(lesson);
+            if (enrolled >= lesson.getMaxEnrolled()) {
+                throw new IllegalBookingException("no more free slots for lesson: " + lessonUuid);
+            }
+            saved = repository.save(created);
+            emailDeliveryService.send(new SendEmailRequestDto(
+                    student.getEmail().getValue(),
+                    "Booking status",
+                    createEmailBody(saved.getUuid(), lesson.getStartTime(), student.isTrial())
+            ));
+        } finally {
+            lock.writeLock().unlock();
         }
-        Booking saved = repository.save(created);
-        emailDeliveryService.send(new SendEmailRequestDto(
-                student.getEmail().getValue(),
-                "Booking status",
-                createEmailBody(saved.getUuid(), lesson.getStartTime(), student.isTrial())
-        ));
         return mapper.toDto(saved);
     }
 
