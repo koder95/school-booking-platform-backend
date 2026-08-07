@@ -35,7 +35,7 @@ public class LessonController {
     @GetMapping
     @Operation(summary = "Get all lessons", description = "Get all lessons with pagination")
     public Page<LessonDto> getAll(@ParameterObject Pageable pageable) {
-        return lessonService.findAll(pageable);
+        return lessonService.getAll(pageable);
     }
 
     @GetMapping("/{lessonUuid}")
@@ -87,6 +87,6 @@ public class LessonController {
             - If you do this as a student, you'll get booked lessons **for yourself**.
             """)
     public Page<LessonDto> getBooked(@ParameterObject Pageable pageable) {
-        return lessonService.findAllBooked(pageable);
+        return lessonService.getAllBooked(pageable);
     }
 }

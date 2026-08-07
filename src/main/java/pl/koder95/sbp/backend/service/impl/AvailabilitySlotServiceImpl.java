@@ -4,6 +4,7 @@ import java.time.Period;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +55,16 @@ public class AvailabilitySlotServiceImpl implements AvailabilitySlotService {
 
     @Override
     @Transactional
+    public void cleanOldAvailabilitySlots() {
+        List<AvailabilitySlot> oldSlots = repository.findAllByTimestampBefore(ZonedDateTime.now());
+        oldSlots.forEach(slot -> {
+            slot.getTeachers().clear();
+            repository.delete(slot);
+        });
+    }
+
+    @Override
+    @Transactional
     public List<AvailabilitySlotDto> createOrGetFor(
             UUID teacherUuid, ZonedDateTime startTime, ZonedDateTime endTime
     ) {
@@ -80,11 +91,14 @@ public class AvailabilitySlotServiceImpl implements AvailabilitySlotService {
     }
 
     private void saveNonExistent(Teacher teacher, List<ZonedDateTime> timestamps) {
-        List<ZonedDateTime> existent = teacher.getAvailabilitySlots().stream()
-                .map(AvailabilitySlot::getTimestamp)
-                .toList();
-        timestamps = new ArrayList<>(timestamps);
-        timestamps.removeAll(existent);
+        Set<AvailabilitySlot> availabilitySlots = teacher.getAvailabilitySlots();
+        if (availabilitySlots != null) { // entity is persisted and has relations
+            List<ZonedDateTime> existent = availabilitySlots.stream()
+                    .map(AvailabilitySlot::getTimestamp)
+                    .toList();
+            timestamps = new ArrayList<>(timestamps);
+            timestamps.removeAll(existent);
+        }
         repository.saveAll(timestamps.stream().map(
                 timestamp -> createOrGetAvailabilitySlot(timestamp).addTeacher(teacher)
         ).toList());

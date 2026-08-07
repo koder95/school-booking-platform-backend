@@ -4,7 +4,7 @@ import java.time.ZonedDateTime;
 import java.util.UUID;
 
 public record LessonDto(
-        UUID lessonUuid,
+        UUID uuid,
         ZonedDateTime startTime,
         Long subjectId,
         UUID teacherUuid,

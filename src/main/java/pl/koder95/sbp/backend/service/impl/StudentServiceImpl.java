@@ -43,4 +43,9 @@ public class StudentServiceImpl implements StudentService {
         Student student = mapper.toModel(dto, emailRepository);
         return mapper.toDto(repository.save(student), emailRepository);
     }
+
+    @Override
+    public long count() {
+        return repository.count();
+    }
 }

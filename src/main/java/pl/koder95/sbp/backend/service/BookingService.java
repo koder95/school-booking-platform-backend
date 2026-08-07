@@ -9,6 +9,8 @@ import pl.koder95.sbp.backend.dto.BookingDto;
 public interface BookingService {
     BookingDto book(UUID lessonUuid);
 
+    BookingDto book(UUID lessonUuid, UUID studentUuid);
+
     Page<BookingDto> getAllNotAcceptedYetBookings(Pageable pageable);
 
     Page<BookingDto> getAll(Pageable pageable);
