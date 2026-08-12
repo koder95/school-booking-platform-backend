@@ -40,6 +40,13 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
         return createUniversalErrorMessageFormat(request, status, errors, new HttpHeaders());
     }
 
+    @ExceptionHandler(RequestRateLimitException.class)
+    protected ResponseEntity<Object> handleRequestRateLimitException(
+            RequestRateLimitException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.valueOf(429);
+        return createUniversalErrorMessageFormat(request, status, List.of(ex.getMessage()));
+    }
+
     @ExceptionHandler(ExamplesInstallationException.class)
     protected ResponseEntity<Object> handleExamplesInstallationException(
             ExamplesInstallationException ex, HttpServletRequest request) {

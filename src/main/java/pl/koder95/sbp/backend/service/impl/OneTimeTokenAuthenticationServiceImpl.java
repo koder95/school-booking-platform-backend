@@ -49,6 +49,11 @@ public class OneTimeTokenAuthenticationServiceImpl implements OneTimeTokenAuthen
         Bucket onePerMinute = proxyManager.builder()
                 .build("ott:generate:" + email, onePerMinuteConfig());
         if (onePerMinute.tryConsume(1)) {
+            Bucket fivePerHour = proxyManager.builder()
+                    .build("ott:generate:" + email, fivePerHourConfig());
+            if (!fivePerHour.tryConsume(1)) {
+                throw new RequestRateLimitException("Request rate limit exceeded");
+            }
             return consumeGenerateOttRequest(requestDto);
         }
         Bucket fivePerFiveMinutes = proxyManager.builder()
@@ -111,7 +116,18 @@ public class OneTimeTokenAuthenticationServiceImpl implements OneTimeTokenAuthen
                 .addLimit(
                         Bandwidth.builder()
                                 .capacity(5)
-                                .refillIntervally(5, Duration.ofMinutes(1))
+                                .refillIntervally(5, Duration.ofMinutes(5))
+                                .build()
+                )
+                .build();
+    }
+
+    private Supplier<BucketConfiguration> fivePerHourConfig() {
+        return () -> BucketConfiguration.builder()
+                .addLimit(
+                        Bandwidth.builder()
+                                .capacity(5)
+                                .refillIntervally(5, Duration.ofHours(1))
                                 .build()
                 )
                 .build();
