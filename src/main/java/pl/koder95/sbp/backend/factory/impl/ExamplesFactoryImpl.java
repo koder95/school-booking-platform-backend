@@ -3,6 +3,7 @@ package pl.koder95.sbp.backend.factory.impl;
 import java.math.BigInteger;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -111,7 +112,14 @@ public class ExamplesFactoryImpl implements ExamplesFactory {
     }
 
     private void bookLesson() {
-        List<LessonDto> lessons = lessonService.getAll(Pageable.unpaged()).getContent();
+        ZonedDateTime now = ZonedDateTime.now();
+        List<LessonDto> lessons = lessonService.getAll(Pageable.unpaged()).getContent()
+                .stream()
+                .filter(lessonDto ->
+                        now.plusDays(1).toLocalDate().equals(lessonDto.startTime().toLocalDate())
+                )
+                .filter(lessonDto -> now.isBefore(lessonDto.closingTime().minusMinutes(15)))
+                .toList();
         List<StudentDto> students = studentService.getAll(Pageable.unpaged()).getContent();
         for (LessonDto lesson : lessons) {
             for (StudentDto student : students) {
