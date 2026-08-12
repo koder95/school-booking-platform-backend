@@ -27,7 +27,7 @@ databaseChangeLog:
                     constraints:
                       nullable: false
                       foreignKeyName: fk_bookings_student_uuid
-                      references: students(uuid)
+                      references: users(uuid)
                       unique: true
                       uniqueConstraintName: uq_student_lesson_uuids
                 - column:

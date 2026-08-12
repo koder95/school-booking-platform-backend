@@ -1,5 +1,5 @@
 # School Booking Platform Backend
-[![Java CI](https://github.com/koder95/school-booking-platform-backend/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/koder95/school-booking-platform-backend/actions/workflows/ci.yml)
+[![Java CI](https://github.com/koder95/school-booking-platform-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/koder95/school-booking-platform-backend/actions/workflows/ci.yml)
 [![Build and Push Docker Image](https://github.com/koder95/school-booking-platform-backend/actions/workflows/cd.yml/badge.svg?branch=master)](https://github.com/koder95/school-booking-platform-backend/actions/workflows/cd.yml)
 
 This repository contains the backend service for the **School Booking Platform**.

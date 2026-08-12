@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 013-create-one-time-tokens-table
+      id: 011-create-one-time-tokens-table
       author: Koder95
       changes:
         - createTable:

@@ -20,8 +20,6 @@ databaseChangeLog:
   - include:
       file: db/changelog/changes/010-create-lessons-table.yml
   - include:
-      file: db/changelog/changes/011-create-students-table.yml
+      file: db/changelog/changes/011-create-one-time-tokens-table.yml
   - include:
       file: db/changelog/changes/012-create-bookings-table.yml
-  - include:
-      file: db/changelog/changes/013-create-one-time-tokens-table.yml
