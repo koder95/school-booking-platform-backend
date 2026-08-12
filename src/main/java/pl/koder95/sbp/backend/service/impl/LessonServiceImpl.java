@@ -1,7 +1,6 @@
 package pl.koder95.sbp.backend.service.impl;
 
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -48,16 +47,13 @@ public class LessonServiceImpl implements LessonService {
         Optional<AvailabilitySlot> slotOpt = availabilitySlotRepository
                 .findById(requestDto.availabilitySlotUuid());
         if (slotOpt.isPresent()) {
-            AvailabilitySlot slot = slotOpt.get();
             Teacher teacher = saved.getAssigned();
+            AvailabilitySlot slot = slotOpt.get();
             slot.removeTeacher(teacher);
-            Set<AvailabilitySlot> slots = teacher.getAvailabilitySlots();
-            if (slots != null) {
-                slots.remove(slot);
-            }
-            slot = availabilitySlotRepository.save(slot);
-            if (slot.getTeachers().isEmpty()) {
-                availabilitySlotRepository.deleteById(requestDto.availabilitySlotUuid());
+            if (slot.getTeachers() == null || slot.getTeachers().isEmpty()) {
+                teacherRepository.findByAvailabilitySlot(slot)
+                        .forEach(t -> t.getAvailabilitySlots().remove(slot));
+                availabilitySlotRepository.delete(slot);
             }
         }
         return mapper.toDto(saved, bookingRepository);
