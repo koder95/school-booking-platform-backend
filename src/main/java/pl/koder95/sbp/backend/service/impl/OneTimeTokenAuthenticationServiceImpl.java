@@ -61,7 +61,7 @@ public class OneTimeTokenAuthenticationServiceImpl implements OneTimeTokenAuthen
         if (fivePerFiveMinutes.tryConsume(1)) {
             return consumeGenerateOttRequest(requestDto);
         }
-        throw new RequestRateLimitException("Request rate limit exceeded");
+        throw new RequestRateLimitException(null);
     }
 
     private EmailDeliveryInfoDto consumeGenerateOttRequest(
