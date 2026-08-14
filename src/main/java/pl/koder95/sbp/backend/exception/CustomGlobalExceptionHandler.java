@@ -1,6 +1,8 @@
 package pl.koder95.sbp.backend.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import org.springframework.http.HttpHeaders;
@@ -38,6 +40,22 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
             HttpServletRequest request, HttpStatus status, List<String> errors
     ) {
         return createUniversalErrorMessageFormat(request, status, errors, new HttpHeaders());
+    }
+
+    @ExceptionHandler(RequestRateLimitException.class)
+    protected ResponseEntity<Object> handleRequestRateLimitException(
+            RequestRateLimitException ex,
+            HttpServletRequest request, HttpServletResponse response) {
+        if (ex.getMessage() == null) {
+            response.resetBuffer();
+            try {
+                response.getOutputStream().close();
+            } catch (IOException ignored) {
+                // ignored
+            }
+        }
+        HttpStatus status = HttpStatus.valueOf(429);
+        return createUniversalErrorMessageFormat(request, status, List.of(ex.getMessage()));
     }
 
     @ExceptionHandler(ExamplesInstallationException.class)
