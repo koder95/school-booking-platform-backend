@@ -4,17 +4,17 @@ import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.BucketConfiguration;
 import io.github.bucket4j.distributed.proxy.ProxyManager;
-import java.net.InetAddress;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.ott.GenerateOneTimeTokenRequest;
 import org.springframework.security.authentication.ott.OneTimeToken;
 import org.springframework.security.authentication.ott.OneTimeTokenAuthenticationToken;
 import org.springframework.security.authentication.ott.OneTimeTokenService;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import pl.koder95.sbp.backend.dto.EmailDeliveryInfoDto;
 import pl.koder95.sbp.backend.dto.GenerateOneTimeTokenRequestDto;
 import pl.koder95.sbp.backend.dto.SendEmailRequestDto;
@@ -40,8 +40,6 @@ public class OneTimeTokenAuthenticationServiceImpl implements OneTimeTokenAuthen
     private final EmailRepository emailRepository;
     private final StudentRepository studentRepository;
     private final ProxyManager<Object> proxyManager;
-    @Autowired
-    private InetAddress ip;
 
     @Override
     public EmailDeliveryInfoDto generateOtt(GenerateOneTimeTokenRequestDto requestDto) {
@@ -56,6 +54,9 @@ public class OneTimeTokenAuthenticationServiceImpl implements OneTimeTokenAuthen
             }
             return consumeGenerateOttRequest(requestDto);
         }
+        String ip = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes())
+                .getRequest()
+                .getRemoteAddr();
         Bucket fivePerFiveMinutes = proxyManager.builder()
                 .build("ott:generate:" + email + ":" + ip, fivePerFiveMinutesConfig());
         if (fivePerFiveMinutes.tryConsume(1)) {

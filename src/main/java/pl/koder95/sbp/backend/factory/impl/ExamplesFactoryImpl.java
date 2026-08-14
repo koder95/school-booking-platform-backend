@@ -1,6 +1,8 @@
 package pl.koder95.sbp.backend.factory.impl;
 
 import java.math.BigInteger;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -113,10 +115,13 @@ public class ExamplesFactoryImpl implements ExamplesFactory {
 
     private void bookLesson() {
         ZonedDateTime now = ZonedDateTime.now();
+        LocalDate tomorrow = (
+                now.getDayOfWeek() == DayOfWeek.FRIDAY ? now.plusDays(3) : now.plusDays(1)
+        ).toLocalDate();
         List<LessonDto> lessons = lessonService.getAll(Pageable.unpaged()).getContent()
                 .stream()
                 .filter(lessonDto ->
-                        now.plusDays(1).toLocalDate().equals(lessonDto.startTime().toLocalDate())
+                        tomorrow.equals(lessonDto.startTime().toLocalDate())
                 )
                 .filter(lessonDto -> now.isBefore(lessonDto.closingTime().minusMinutes(15)))
                 .toList();
