@@ -38,13 +38,12 @@ import pl.koder95.sbp.backend.service.TeacherService;
 @RequiredArgsConstructor
 @Slf4j
 public class ExamplesFactoryImpl implements ExamplesFactory {
+    private static final TimeRangeDto WORKDAY_TIME = new TimeRangeDto(
+            LocalTime.of(8, 0), LocalTime.of(16, 0)
+    );
     private static final UpdateAvailabilityRequestDto AVAILABILITY
             = new UpdateAvailabilityRequestDto(
-                    new TimeRangeDto(LocalTime.of(8, 0), LocalTime.of(16, 0)),
-                    new TimeRangeDto(LocalTime.of(8, 0), LocalTime.of(16, 0)),
-                    new TimeRangeDto(LocalTime.of(8, 0), LocalTime.of(16, 0)),
-                    new TimeRangeDto(LocalTime.of(8, 0), LocalTime.of(16, 0)),
-                    new TimeRangeDto(LocalTime.of(8, 0), LocalTime.of(16, 0)),
+                    WORKDAY_TIME, WORKDAY_TIME, WORKDAY_TIME, WORKDAY_TIME, WORKDAY_TIME,
                     new TimeRangeDto(LocalTime.of(12, 0), LocalTime.of(13, 0))
     );
     private static int STUDENT_AI = 0;
@@ -169,8 +168,9 @@ public class ExamplesFactoryImpl implements ExamplesFactory {
         List<TeacherDto> created = new java.util.ArrayList<>();
         for (SubjectDto subject : subjects) {
             int i = TEACHER_AI++;
+            String email = subject.name().toLowerCase().replaceAll("\\s", ".");
             created.add(teacherService.create(new CreateTeacherRequestDto(
-                    "teacher%d.%s@example.com".formatted(i, subject.name()),
+                    "teacher%d.%s@example.com".formatted(i, email),
                     subject.id(),
                     "Name %d".formatted(i),
                     "Somebody",
@@ -181,16 +181,18 @@ public class ExamplesFactoryImpl implements ExamplesFactory {
     }
 
     private void createSubjects() {
-        List<SubjectDto> created = new java.util.ArrayList<>();
-        created.add(subjectService.create(new CreateSubjectRequestDto("Math", null)));
-        created.add(subjectService.create(new CreateSubjectRequestDto("Science", null)));
-        created.add(subjectService.create(new CreateSubjectRequestDto("History", null)));
-        created.add(subjectService.create(new CreateSubjectRequestDto("Geography", null)));
-        created.add(subjectService.create(new CreateSubjectRequestDto("English", null)));
-        created.add(subjectService.create(new CreateSubjectRequestDto("Art", null)));
-        created.add(subjectService.create(new CreateSubjectRequestDto("Music", null)));
-        created.add(subjectService.create(new CreateSubjectRequestDto("Physical Education", null)));
-        log.info("Created subjects: {}", created);
+        createSubjects(List.of(
+                "Chemistry", "Ukrainian", "Physics", "Biology", "History",
+                "Literature", "English", "Mathematics", "Polish"
+        ));
+    }
+
+    private void createSubjects(List<String> names) {
+        log.info("Created subjects: {}", names.stream().map(this::createSubject).toList());
+    }
+
+    private SubjectDto createSubject(String name) {
+        return subjectService.create(new CreateSubjectRequestDto(name, null));
     }
 
     private void createStudents() {

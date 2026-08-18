@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pl.koder95.sbp.backend.dto.BookingDto;
 import pl.koder95.sbp.backend.dto.CreateLessonRequestDto;
 import pl.koder95.sbp.backend.dto.LessonDto;
+import pl.koder95.sbp.backend.dto.LessonSearchParamsDto;
 import pl.koder95.sbp.backend.dto.UpdateLessonRequestDto;
 import pl.koder95.sbp.backend.service.BookingService;
 import pl.koder95.sbp.backend.service.LessonService;
@@ -88,5 +89,19 @@ public class LessonController {
             """)
     public Page<LessonDto> getBooked(@ParameterObject Pageable pageable) {
         return lessonService.getAllBooked(pageable);
+    }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
+    @Operation(summary = "Search lessons", description = """
+            Search lessons by page and optional filters:
+            
+            - **from** / **to**: filter by lesson start time range.
+            - **open**: if `true`, only still-open lessons; if `false`, only closed lessons.
+            """)
+    public Page<LessonDto> search(@ParameterObject LessonSearchParamsDto params,
+                                  @ParameterObject Pageable pageable) {
+        return lessonService.search(params, pageable);
     }
 }

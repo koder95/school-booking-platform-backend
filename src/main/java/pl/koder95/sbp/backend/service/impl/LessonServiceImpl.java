@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.koder95.sbp.backend.dto.CreateLessonRequestDto;
 import pl.koder95.sbp.backend.dto.LessonDto;
+import pl.koder95.sbp.backend.dto.LessonSearchParamsDto;
 import pl.koder95.sbp.backend.dto.UpdateLessonRequestDto;
 import pl.koder95.sbp.backend.exception.EntityNotFoundException;
 import pl.koder95.sbp.backend.mapper.LessonMapper;
@@ -26,6 +27,7 @@ import pl.koder95.sbp.backend.repository.SubjectRepository;
 import pl.koder95.sbp.backend.repository.TeacherRepository;
 import pl.koder95.sbp.backend.security.AuthenticationUtil;
 import pl.koder95.sbp.backend.service.LessonService;
+import pl.koder95.sbp.backend.specification.LessonSpecification;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +39,7 @@ public class LessonServiceImpl implements LessonService {
     private final SubjectRepository subjectRepository;
     private final BookingRepository bookingRepository;
     private final AuthenticationUtil authenticationUtil;
+    private final LessonSpecification.Builder specificationBuilder;
 
     @Override
     @Transactional
@@ -103,6 +106,12 @@ public class LessonServiceImpl implements LessonService {
             return findAllBookedForAdmin(pageable);
         }
         throw new AccessDeniedException("Access denied for user: " + user.getUuid());
+    }
+
+    @Override
+    public Page<LessonDto> search(LessonSearchParamsDto params, Pageable pageable) {
+        return repository.findAll(specificationBuilder.build(params), pageable)
+                .map(lesson -> mapper.toDto(lesson, bookingRepository));
     }
 
     private Page<LessonDto> findAllBookedForAdmin(Pageable pageable) {
