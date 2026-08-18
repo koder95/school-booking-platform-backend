@@ -5,10 +5,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import pl.koder95.sbp.backend.model.Lesson;
 import pl.koder95.sbp.backend.model.Student;
 
-public interface LessonRepository extends JpaRepository<Lesson, UUID> {
+public interface LessonRepository extends JpaRepository<Lesson, UUID>,
+                                          JpaSpecificationExecutor<Lesson> {
     @EntityGraph(attributePaths = "bookings")
     Page<Lesson> findAllByBookingsNotEmpty(Pageable pageable);
 
