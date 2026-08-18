@@ -2,7 +2,6 @@ package pl.koder95.sbp.backend.service.impl;
 
 import java.util.Optional;
 import java.util.UUID;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -11,7 +11,8 @@ import pl.koder95.sbp.backend.specification.FilterStrategy;
 
 @Component
 @RequiredArgsConstructor
-public class LessonStillOpenFilterStrategy implements FilterStrategy<Lesson, LessonSearchParamsDto> {
+public class LessonStillOpenFilterStrategy
+        implements FilterStrategy<Lesson, LessonSearchParamsDto> {
     @Override
     public boolean isApplicable(LessonSearchParamsDto criteria) {
         return criteria.open() != null;
