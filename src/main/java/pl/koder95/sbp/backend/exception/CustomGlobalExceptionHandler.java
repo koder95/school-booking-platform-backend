@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.NoSuchElementException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -122,6 +123,12 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
             EntityNotFoundException ex, HttpServletRequest request) {
         HttpStatus status = HttpStatus.NOT_FOUND;
         return createUniversalErrorMessageFormat(request, status, List.of(ex.getMessage()));
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    protected ResponseEntity<Object> handleNoSuchElementException(HttpServletRequest request) {
+        HttpStatus status = HttpStatus.NOT_FOUND;
+        return createUniversalErrorMessageFormat(request, status, List.of());
     }
 
     @ExceptionHandler(BadCredentialsException.class)
