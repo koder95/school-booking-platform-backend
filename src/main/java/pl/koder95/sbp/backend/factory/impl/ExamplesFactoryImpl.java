@@ -38,13 +38,12 @@ import pl.koder95.sbp.backend.service.TeacherService;
 @RequiredArgsConstructor
 @Slf4j
 public class ExamplesFactoryImpl implements ExamplesFactory {
+    private static final TimeRangeDto WORKDAY_TIME = new TimeRangeDto(
+            LocalTime.of(8, 0), LocalTime.of(16, 0)
+    );
     private static final UpdateAvailabilityRequestDto AVAILABILITY
             = new UpdateAvailabilityRequestDto(
-                    new TimeRangeDto(LocalTime.of(8, 0), LocalTime.of(16, 0)),
-                    new TimeRangeDto(LocalTime.of(8, 0), LocalTime.of(16, 0)),
-                    new TimeRangeDto(LocalTime.of(8, 0), LocalTime.of(16, 0)),
-                    new TimeRangeDto(LocalTime.of(8, 0), LocalTime.of(16, 0)),
-                    new TimeRangeDto(LocalTime.of(8, 0), LocalTime.of(16, 0)),
+                    WORKDAY_TIME, WORKDAY_TIME, WORKDAY_TIME, WORKDAY_TIME, WORKDAY_TIME,
                     new TimeRangeDto(LocalTime.of(12, 0), LocalTime.of(13, 0))
     );
     private static int STUDENT_AI = 0;
