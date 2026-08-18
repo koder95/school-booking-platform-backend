@@ -10,15 +10,11 @@ import jakarta.persistence.Table;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Getter
 @Setter
 @Table(name = "subjects")
-@SQLDelete(sql = "UPDATE subjects SET is_deleted = true WHERE id = ?")
-@SQLRestriction("is_deleted = false")
 public class Subject {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,6 +25,4 @@ public class Subject {
     private String description;
     @OneToMany(mappedBy = "subject")
     private Set<Teacher> teachers;
-    @Column(nullable = false)
-    private boolean isDeleted;
 }
