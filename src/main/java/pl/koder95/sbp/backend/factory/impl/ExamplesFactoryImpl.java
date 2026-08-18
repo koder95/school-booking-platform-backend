@@ -168,8 +168,9 @@ public class ExamplesFactoryImpl implements ExamplesFactory {
         List<TeacherDto> created = new java.util.ArrayList<>();
         for (SubjectDto subject : subjects) {
             int i = TEACHER_AI++;
+            String email = subject.name().toLowerCase().replaceAll("\\s", ".");
             created.add(teacherService.create(new CreateTeacherRequestDto(
-                    "teacher%d.%s@example.com".formatted(i, subject.name()),
+                    "teacher%d.%s@example.com".formatted(i, email),
                     subject.id(),
                     "Name %d".formatted(i),
                     "Somebody",
