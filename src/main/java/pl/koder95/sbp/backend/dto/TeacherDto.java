@@ -4,7 +4,7 @@ import java.time.ZoneId;
 import java.util.UUID;
 
 public record TeacherDto(
-        UUID uuid, long emailId, long subjectId,
+        UUID uuid, long emailId, SubjectDto subject,
         String firstName, String lastName, ZoneId zoneId,
         String color
 ) {
