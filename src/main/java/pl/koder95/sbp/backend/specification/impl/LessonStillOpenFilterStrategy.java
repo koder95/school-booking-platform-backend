@@ -21,7 +21,7 @@ public class LessonStillOpenFilterStrategy
     @Override
     public Specification<Lesson> compile(LessonSearchParamsDto criteria) {
         return (root, query, criteriaBuilder) -> {
-            Path<Instant> closeTime = root.get("closeTime");
+            Path<Instant> closeTime = root.get("closingTime");
             Instant now = Instant.now();
             return criteria.open()
                     ? criteriaBuilder.lessThan(closeTime, now)
