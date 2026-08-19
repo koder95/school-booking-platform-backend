@@ -1,5 +1,6 @@
 package pl.koder95.sbp.backend.exception;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -84,6 +85,14 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
         HttpStatus status = HttpStatus.FORBIDDEN;
         return createUniversalErrorMessageFormat(request, status,
                 List.of(ex.getMessage()));
+    }
+
+    @ExceptionHandler(JwtException.class)
+    protected ResponseEntity<Object> handleJwtException(
+            JwtException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.FORBIDDEN;
+        return createUniversalErrorMessageFormat(request, status,
+                List.of("Something is wrong with JWT", ex.getMessage()));
     }
 
     @ExceptionHandler(EmailDeliveryException.class)

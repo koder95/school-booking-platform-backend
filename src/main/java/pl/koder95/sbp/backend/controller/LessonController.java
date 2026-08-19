@@ -99,6 +99,9 @@ public class LessonController {
             
             - **from** / **to**: filter by lesson start time range.
             - **open**: if `true`, only still-open lessons; if `false`, only closed lessons.
+            - **subject.id**: filter by lesson specific subject
+            - **subject.name** / **subject.description**:
+             filter by matched name and description pattern
             """)
     public Page<LessonDto> search(@ParameterObject LessonSearchParamsDto params,
                                   @ParameterObject Pageable pageable) {
