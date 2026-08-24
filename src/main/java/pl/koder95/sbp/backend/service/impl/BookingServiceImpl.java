@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.koder95.sbp.backend.dto.BookingDecisionDto;
 import pl.koder95.sbp.backend.dto.BookingDto;
+import pl.koder95.sbp.backend.dto.BookingType;
 import pl.koder95.sbp.backend.dto.SendEmailRequestDto;
 import pl.koder95.sbp.backend.exception.EntityNotFoundException;
 import pl.koder95.sbp.backend.exception.IllegalBookingException;
@@ -58,6 +59,7 @@ public class BookingServiceImpl implements BookingService {
         Booking saved;
         try {
             lock.writeLock().lock();
+            boolean trial = student.isTrial();
             long enrolled = repository.countDistinctByLesson(lesson);
             if (enrolled >= lesson.getMaxEnrolled()) {
                 throw new IllegalBookingException("no more free slots for lesson: " + lessonUuid);
@@ -66,12 +68,12 @@ public class BookingServiceImpl implements BookingService {
             emailDeliveryService.send(new SendEmailRequestDto(
                     student.getEmail().getValue(),
                     "Booking status",
-                    createEmailBody(saved.getUuid(), lesson.getStartTime(), student.isTrial())
+                    createEmailBody(saved.getUuid(), lesson.getStartTime(), trial)
             ));
+            return mapper.toDto(saved, trial ? BookingType.REQUESTED : BookingType.ACCEPTED);
         } finally {
             lock.writeLock().unlock();
         }
-        return mapper.toDto(saved);
     }
 
     @Override
