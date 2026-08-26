@@ -11,10 +11,10 @@ import pl.koder95.sbp.backend.model.Booking;
 public interface BookingMapper {
     @Mapping(target = "studentUuid", source = "student.uuid")
     @Mapping(target = "lessonUuid", source = "lesson.uuid")
-    @Mapping(target = "type", expression = "java(type)")
-    BookingDto toDto(Booking model, BookingType type);
+    @Mapping(target = "type", expression = "java(mapAccepted(model))")
+    BookingDto toDto(Booking model);
 
-    default BookingDto toDto(Booking model) {
-        return toDto(model, BookingType.ACCEPTED);
+    default BookingType mapAccepted(Booking model) {
+        return model.isAccepted() ? BookingType.ACCEPTED : BookingType.REQUESTED;
     }
 }

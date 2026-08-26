@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.koder95.sbp.backend.dto.BookingDecisionDto;
 import pl.koder95.sbp.backend.dto.BookingDto;
-import pl.koder95.sbp.backend.dto.BookingType;
 import pl.koder95.sbp.backend.dto.SendEmailRequestDto;
 import pl.koder95.sbp.backend.exception.EntityNotFoundException;
 import pl.koder95.sbp.backend.exception.IllegalBookingException;
@@ -70,7 +69,7 @@ public class BookingServiceImpl implements BookingService {
                     "Booking status",
                     createEmailBody(saved.getUuid(), lesson.getStartTime(), trial)
             ));
-            return mapper.toDto(saved, trial ? BookingType.REQUESTED : BookingType.ACCEPTED);
+            return mapper.toDto(saved);
         } finally {
             lock.writeLock().unlock();
         }
