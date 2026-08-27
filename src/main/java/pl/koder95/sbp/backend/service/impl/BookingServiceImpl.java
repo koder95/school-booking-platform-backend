@@ -58,6 +58,7 @@ public class BookingServiceImpl implements BookingService {
         Booking saved;
         try {
             lock.writeLock().lock();
+            boolean trial = student.isTrial();
             long enrolled = repository.countDistinctByLesson(lesson);
             if (enrolled >= lesson.getMaxEnrolled()) {
                 throw new IllegalBookingException("no more free slots for lesson: " + lessonUuid);
@@ -66,12 +67,12 @@ public class BookingServiceImpl implements BookingService {
             emailDeliveryService.send(new SendEmailRequestDto(
                     student.getEmail().getValue(),
                     "Booking status",
-                    createEmailBody(saved.getUuid(), lesson.getStartTime(), student.isTrial())
+                    createEmailBody(saved.getUuid(), lesson.getStartTime(), trial)
             ));
+            return mapper.toDto(saved);
         } finally {
             lock.writeLock().unlock();
         }
-        return mapper.toDto(saved);
     }
 
     @Override

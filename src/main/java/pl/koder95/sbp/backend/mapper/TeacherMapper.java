@@ -23,7 +23,7 @@ public interface TeacherMapper {
                     @Context EmailRepository repository,
                     @Context SubjectRepository subjectRepository);
 
-    @Mapping(target = "emailId", source = "email.id")
+    @Mapping(target = "email", source = "email.value")
     TeacherDto toResponseDto(Teacher model);
 
     TeacherDtoWithoutEmail toResponseDtoWithoutEmail(Teacher model);
