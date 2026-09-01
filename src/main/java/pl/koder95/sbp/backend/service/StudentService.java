@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import pl.koder95.sbp.backend.dto.CreateStudentRequestDto;
 import pl.koder95.sbp.backend.dto.StudentDto;
+import pl.koder95.sbp.backend.dto.UpdateStudentRequestDto;
 
 public interface StudentService {
     Page<StudentDto> getAll(Pageable pageable);
@@ -14,4 +15,6 @@ public interface StudentService {
     StudentDto create(CreateStudentRequestDto dto);
 
     long count();
+
+    StudentDto update(UUID studentUuid, UpdateStudentRequestDto requestDto);
 }

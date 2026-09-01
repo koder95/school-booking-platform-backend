@@ -5,8 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pl.koder95.sbp.backend.dto.CreateStudentRequestDto;
 import pl.koder95.sbp.backend.dto.StudentDto;
+import pl.koder95.sbp.backend.dto.UpdateStudentRequestDto;
 import pl.koder95.sbp.backend.exception.EntityNotFoundException;
 import pl.koder95.sbp.backend.mapper.StudentMapper;
 import pl.koder95.sbp.backend.model.Email;
@@ -47,5 +49,16 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public long count() {
         return repository.count();
+    }
+
+    @Transactional
+    @Override
+    public StudentDto update(UUID studentUuid, UpdateStudentRequestDto requestDto) {
+        Student student = repository.findById(studentUuid)
+                .orElseThrow(
+                        () -> new EntityNotFoundException("student doesn't exist: " + studentUuid)
+                );
+        mapper.updateModel(student, requestDto);
+        return mapper.toDto(student, emailRepository);
     }
 }
