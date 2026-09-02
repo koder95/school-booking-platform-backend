@@ -10,11 +10,14 @@ import pl.koder95.sbp.backend.dto.CreateTeacherRequestDto;
 import pl.koder95.sbp.backend.dto.TeacherDto;
 import pl.koder95.sbp.backend.dto.TeacherDtoWithoutEmail;
 import pl.koder95.sbp.backend.dto.UpdateTeacherRequestDto;
+import pl.koder95.sbp.backend.mapper.TeacherColorMapper;
 import pl.koder95.sbp.backend.mapper.TeacherMapper;
 import pl.koder95.sbp.backend.model.Email;
 import pl.koder95.sbp.backend.model.Teacher;
+import pl.koder95.sbp.backend.model.TeacherColor;
 import pl.koder95.sbp.backend.repository.EmailRepository;
 import pl.koder95.sbp.backend.repository.SubjectRepository;
+import pl.koder95.sbp.backend.repository.TeacherColorRepository;
 import pl.koder95.sbp.backend.repository.TeacherRepository;
 import pl.koder95.sbp.backend.service.AvailabilityService;
 import pl.koder95.sbp.backend.service.TeacherService;
@@ -27,6 +30,8 @@ public class TeacherServiceImpl implements TeacherService {
     private final AvailabilityService availabilityService;
     private final EmailRepository emailRepository;
     private final SubjectRepository subjectRepository;
+    private final TeacherColorRepository colorRepository;
+    private final TeacherColorMapper colorMapper;
 
     @Override
     public TeacherDto get(UUID uuid) {
@@ -48,8 +53,11 @@ public class TeacherServiceImpl implements TeacherService {
     public TeacherDto create(CreateTeacherRequestDto requestDto) {
         Teacher model = mapper.toModel(requestDto, emailRepository, subjectRepository);
         TeacherDto responseDto = mapper.toResponseDto(repository.save(model));
+        TeacherColor colorModel = colorMapper.toModel(model.getUuid(), repository);
+        colorMapper.updateModel(colorModel, requestDto.color());
+        colorRepository.save(colorModel);
         availabilityService.createEmptyFor(responseDto.uuid());
-        return responseDto;
+        return colorMapper.fetchColor(responseDto, colorRepository);
     }
 
     @Override
@@ -61,7 +69,13 @@ public class TeacherServiceImpl implements TeacherService {
         }
         mapper.updateModel(model, requestDto, emailRepository, subjectRepository);
         model = repository.save(model);
-        return mapper.toResponseDto(model);
+        if (requestDto.color() == null) {
+            return mapper.toResponseDto(model);
+        }
+        TeacherColor colorModel = colorMapper.toModel(model.getUuid(), repository);
+        colorMapper.updateModel(colorModel, requestDto.color());
+        colorRepository.save(colorModel);
+        return colorMapper.fetchColor(mapper.toResponseDto(model), colorRepository);
     }
 
     private void updateEmail(Teacher model, String email) {
@@ -75,7 +89,12 @@ public class TeacherServiceImpl implements TeacherService {
     public TeacherDto delete(UUID uuid) {
         Teacher teacher = repository.findById(uuid).orElseThrow();
         availabilityService.deleteFor(uuid);
+        TeacherColor colorModel = colorMapper.toModel(uuid, repository);
+        TeacherDto teacherDto = colorMapper.fetchColor(
+                mapper.toResponseDto(teacher), colorRepository
+        );
+        colorRepository.delete(colorModel);
         repository.delete(teacher);
-        return mapper.toResponseDto(teacher);
+        return teacherDto;
     }
 }

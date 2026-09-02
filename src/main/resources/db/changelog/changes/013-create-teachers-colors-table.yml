@@ -1,0 +1,20 @@
+databaseChangeLog:
+    - changeSet:
+        id: 013-create-teachers-colors-table
+        author: Koder95
+        changes:
+          - createTable:
+              tableName: teachers_colors
+              columns:
+                - column:
+                    name: teacher_uuid
+                    type: uuid
+                    constraints:
+                      nullable: false
+                      foreignKeyName: fk_teachers_colors_teacher_uuid
+                      references: users(uuid)
+                - column:
+                    name: color
+                    type: integer
+                    constraints:
+                      nullable: false
