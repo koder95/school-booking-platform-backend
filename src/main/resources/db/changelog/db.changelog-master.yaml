@@ -23,3 +23,7 @@ databaseChangeLog:
       file: db/changelog/changes/011-create-one-time-tokens-table.yml
   - include:
       file: db/changelog/changes/012-create-bookings-table.yml
+  - include:
+      file: db/changelog/changes/013-create-teachers-colors-table.yml
+  - include:
+      file: db/changelog/changes/014-create-teachers-work-terms-table.yml

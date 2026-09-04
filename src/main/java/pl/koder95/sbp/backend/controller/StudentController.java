@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pl.koder95.sbp.backend.dto.CreateStudentRequestDto;
 import pl.koder95.sbp.backend.dto.StudentDto;
+import pl.koder95.sbp.backend.dto.UpdateStudentRequestDto;
 import pl.koder95.sbp.backend.service.StudentService;
 
 @RestController
@@ -54,5 +56,14 @@ public class StudentController {
                     + "Only available for users with ADMIN role.")
     public StudentDto get(@PathVariable UUID studentUuid) {
         return studentService.get(studentUuid);
+    }
+
+    @PatchMapping("/{studentUuid}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
+    @Operation(summary = "Update student info")
+    public StudentDto update(@PathVariable UUID studentUuid,
+                             @RequestBody UpdateStudentRequestDto requestDto) {
+        return studentService.update(studentUuid, requestDto);
     }
 }

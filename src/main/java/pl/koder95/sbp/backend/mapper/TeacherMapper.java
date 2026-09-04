@@ -1,5 +1,6 @@
 package pl.koder95.sbp.backend.mapper;
 
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -13,8 +14,9 @@ import pl.koder95.sbp.backend.model.Email;
 import pl.koder95.sbp.backend.model.Teacher;
 import pl.koder95.sbp.backend.repository.EmailRepository;
 import pl.koder95.sbp.backend.repository.SubjectRepository;
+import pl.koder95.sbp.backend.repository.TeacherColorRepository;
 
-@Mapper(config = MapperConfig.class)
+@Mapper(config = MapperConfig.class, uses = {TeacherColorMapper.class})
 public interface TeacherMapper {
     @Mapping(target = "email", source = "email")
     @Mapping(target = "subject",
@@ -39,5 +41,21 @@ public interface TeacherMapper {
         return repository.findByValue(email).orElseGet(
                 () -> repository.save(new Email().setValue(email))
         );
+    }
+
+    @AfterMapping
+    default TeacherDto fetchColor(@MappingTarget TeacherDto teacherDto,
+                                  @Context TeacherColorMapper colorMapper,
+                                  @Context TeacherColorRepository colorRepository) {
+        return colorMapper.fetchColor(teacherDto, colorRepository);
+    }
+
+    @AfterMapping
+    default TeacherDtoWithoutEmail fetchColorAndWithoutEmail(
+            @MappingTarget TeacherDtoWithoutEmail teacherDto,
+            @Context TeacherColorMapper colorMapper,
+            @Context TeacherColorRepository colorRepository
+    ) {
+        return colorMapper.fetchColorAndWithoutEmail(teacherDto, colorRepository);
     }
 }
