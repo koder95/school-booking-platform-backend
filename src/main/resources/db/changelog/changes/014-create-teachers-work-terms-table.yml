@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 014-create-teachers-work-terms-table
+      author: Koder95
+      changes:
+        - createTable:
+            tableName: teachers_work_terms
+            columns:
+              - column:
+                  name: teacher_uuid
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_teachers_work_terms_teacher_uuid
+                    references: teachers(uuid)
+              - column:
+                  name: work_type
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: work_due_date
+                  type: date
+                  constraints:
+                    nullable: false

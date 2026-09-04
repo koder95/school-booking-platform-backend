@@ -92,7 +92,7 @@ public class TeacherController {
                     + "Only available for users with ADMIN role."
     )
     public TeacherDto update(@PathVariable UUID teacherUuid,
-                             @RequestBody UpdateTeacherRequestDto dto) {
+                             @Valid @RequestBody UpdateTeacherRequestDto dto) {
         return teacherService.update(teacherUuid, dto);
     }
 

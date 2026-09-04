@@ -175,7 +175,7 @@ public class ExamplesFactoryImpl implements ExamplesFactory {
                     "Name %d".formatted(i),
                     "Somebody",
                     randomZoneId(),
-                    null)
+                    null, null, null)
             ));
         }
         log.info("Created teachers: {}", created);

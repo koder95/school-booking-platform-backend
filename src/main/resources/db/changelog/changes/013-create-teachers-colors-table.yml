@@ -12,7 +12,7 @@ databaseChangeLog:
                     constraints:
                       nullable: false
                       foreignKeyName: fk_teachers_colors_teacher_uuid
-                      references: users(uuid)
+                      references: teachers(uuid)
                 - column:
                     name: color
                     type: integer
