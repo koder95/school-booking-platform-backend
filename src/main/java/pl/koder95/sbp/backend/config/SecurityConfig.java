@@ -53,7 +53,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/api/lessons", "/api/lessons/*",
                                 "/api/teachers/*", "/api/teachers/*/availability",
-                                "/api/subjects", "/api/subjects/*"
+                                "/api/subjects", "/api/subjects/*",
+                                "/api/resources", "/api/resources/*"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
