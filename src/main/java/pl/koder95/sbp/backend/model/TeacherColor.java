@@ -34,15 +34,15 @@ public class TeacherColor {
     public void setColorHex(String colorHex) {
         if (colorHex.startsWith("#")) {
             colorHex = colorHex.substring(1);
-            if (colorHex.length() == 3) {
-                colorHex = ""
-                        + colorHex.charAt(0) + colorHex.charAt(0)
-                        + colorHex.charAt(1) + colorHex.charAt(1)
-                        + colorHex.charAt(2) + colorHex.charAt(2);
-            }
-            if (colorHex.length() != 6) {
-                throw new IllegalArgumentException("Invalid color hex: " + colorHex);
-            }
+        }
+        if (colorHex.length() == 3) {
+            colorHex = ""
+                    + colorHex.charAt(0) + colorHex.charAt(0)
+                    + colorHex.charAt(1) + colorHex.charAt(1)
+                    + colorHex.charAt(2) + colorHex.charAt(2);
+        }
+        if (colorHex.length() != 6) {
+            throw new IllegalArgumentException("Invalid color hex: " + colorHex);
         }
         this.color = Integer.parseInt(colorHex, 16);
     }
