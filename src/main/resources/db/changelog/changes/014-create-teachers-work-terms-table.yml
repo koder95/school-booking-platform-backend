@@ -21,5 +21,3 @@ databaseChangeLog:
               - column:
                   name: work_due_date
                   type: date
-                  constraints:
-                    nullable: false
