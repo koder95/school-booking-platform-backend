@@ -4,6 +4,7 @@ WORKDIR school-booking-platform-backend
 ARG SBP_BACKEND_VERSION=1.0-SNAPSHOT
 COPY src/ ./src
 COPY mvnw ./
+RUN chmod +x mvnw
 COPY .mvn/ ./.mvn/
 COPY pom.xml ./
 COPY checkstyle.xml ./
