@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 015-create-resources-table
+      author: Koder95
+      changes:
+        - createTable:
+            tableName: resources
+            columns:
+              - column:
+                  name: uuid
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: url
+                  type: text
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: type
+                  type: varchar(255)
+                  constraints:
+                    nullable: false

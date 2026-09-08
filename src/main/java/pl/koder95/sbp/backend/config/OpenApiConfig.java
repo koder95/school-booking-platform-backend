@@ -11,11 +11,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
     @Bean
-    public OpenAPI customOpenApi(@Value("${sbp.backend.version}") String version) {
+    public OpenAPI customOpenApi(@Value("${sbp.backend.version}") String version,
+                                 @Value("${spring.application.name}") String appName) {
         return new OpenAPI().info(new Info()
-                .title("School Booking Platform API")
+                .title(appName)
                 .version(version)
-                .contact(new Contact().name("Koder95").url("https://github.com/koder95"))
+                .contact(new Contact()
+                        .email("kontakt@koder95.pl")
+                        .name("Koder95")
+                        .url("https://github.com/koder95"))
                 .license(new License()
                         .name("The MIT License")
                         .url("https://opensource.org/licenses/MIT")
