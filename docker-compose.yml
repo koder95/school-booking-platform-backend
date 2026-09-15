@@ -40,7 +40,7 @@ services:
     healthcheck:
       test: [ "CMD", "nc", "-z", "localhost", "8080" ]
       interval: 5s
-      timeout: 3s
+      timeout: 30s
       retries: 30
     ports:
       - "8082:8080"

@@ -29,3 +29,7 @@ databaseChangeLog:
       file: db/changelog/changes/014-create-teachers-work-terms-table.yml
   - include:
       file: db/changelog/changes/015-create-resources-table.yml
+  - include:
+      file: db/changelog/changes/016-create-teachers-avatars-table.yml
+  - include:
+      file: db/changelog/changes/017-create-users-avatars-table.yml
