@@ -35,13 +35,13 @@ public class LessonSubjectFilterStrategy implements FilterStrategy<Lesson, Lesso
 
     private Specification<Lesson> forId(SubjectDto subject) {
         return (root, query, criteriaBuilder)
-                -> criteriaBuilder.equal(root.get("subject.id"), subject.id());
+                -> criteriaBuilder.equal(root.get("subject").get("id"), subject.id());
     }
 
     private Specification<Lesson> forName(SubjectDto subject) {
         return (root, query, criteriaBuilder)
                 -> {
-            Expression<String> lower = criteriaBuilder.lower(root.get("subject.name"));
+            Expression<String> lower = criteriaBuilder.lower(root.get("subject").get("name"));
             return criteriaBuilder.like(lower, "%" + subject.name().toLowerCase() + "%");
         };
     }
@@ -49,7 +49,8 @@ public class LessonSubjectFilterStrategy implements FilterStrategy<Lesson, Lesso
     private Specification<Lesson> forDescription(SubjectDto subject) {
         return (root, query, criteriaBuilder)
                 -> {
-            Expression<String> lower = criteriaBuilder.lower(root.get("subject.description"));
+            Expression<String> lower = criteriaBuilder
+                    .lower(root.get("subject").get("description"));
             return criteriaBuilder.like(lower, "%" + subject.description().toLowerCase() + "%");
         };
     }

@@ -8,7 +8,8 @@ import pl.koder95.sbp.backend.model.WorkType;
 public record TeacherDto(
         UUID uuid, String email, SubjectDto subject,
         String firstName, String lastName, ZoneId zoneId,
-        String color, WorkType workType, LocalDate workDueDate
+        String color, WorkType workType, LocalDate workDueDate,
+        String avatarUrl
 ) {
     public TeacherDto {
         color = color == null || color.isBlank() ? generateColorHex() : color;

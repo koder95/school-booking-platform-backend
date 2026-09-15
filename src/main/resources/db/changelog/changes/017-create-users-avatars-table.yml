@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 017-create-users-avatars-table
+      author: Koder95
+      changes:
+        - createTable:
+            tableName: users_avatars
+            columns:
+              - column:
+                  name: user_uuid
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_users_avatars_user_uuid
+                    references: users(uuid)
+              - column:
+                  name: resource_uuid
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_users_avatars_resource_uuid
+                    references: resources(uuid)
+        - addPrimaryKey:
+            tableName: users_avatars
+            columnNames: user_uuid, resource_uuid

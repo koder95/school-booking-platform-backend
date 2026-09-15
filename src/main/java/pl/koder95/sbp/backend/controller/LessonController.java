@@ -92,8 +92,6 @@ public class LessonController {
     }
 
     @GetMapping("/search")
-    @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
-    @SecurityRequirement(name = "bearer-key")
     @Operation(summary = "Search lessons", description = """
             Search lessons by page and optional filters:
             

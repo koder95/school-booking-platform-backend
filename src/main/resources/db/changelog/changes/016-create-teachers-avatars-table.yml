@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 016-create-teachers-avatars-table
+      author: Koder95
+      changes:
+        - createTable:
+            tableName: teachers_avatars
+            columns:
+              - column:
+                  name: teacher_uuid
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_teachers_avatars_teacher_uuid
+                    references: teachers(uuid)
+              - column:
+                  name: resource_uuid
+                  type: uuid
+                  constraints:
+                    foreignKeyName: fk_teachers_avatars_resource_uuid
+                    references: resources(uuid)
+        - addPrimaryKey:
+            tableName: teachers_avatars
+            columnNames: teacher_uuid, resource_uuid

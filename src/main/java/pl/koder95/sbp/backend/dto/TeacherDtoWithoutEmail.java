@@ -7,7 +7,7 @@ import pl.koder95.sbp.backend.model.WorkType;
 public record TeacherDtoWithoutEmail(
         UUID uuid, String firstName, String lastName, SubjectDto subject,
         String color, WorkType workType, LocalDate workDueDate,
-        String avatar
+        String avatarUrl
 ) {
     public TeacherDtoWithoutEmail {
         color = color == null || color.isBlank() ? generateColorHex() : color;
