@@ -39,7 +39,7 @@ services:
     env_file: ./.env
     healthcheck:
       test: [ "CMD", "nc", "-z", "localhost", "8080" ]
-      interval: 5s
+      interval: 10s
       timeout: 30s
       retries: 30
     ports:
