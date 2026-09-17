@@ -11,4 +11,15 @@ public interface ResourceRepository extends JpaRepository<Resource, UUID> {
     Page<Resource> findAllByType(Resource.Type type, Pageable pageable);
 
     Optional<Resource> findByUrl(String url);
+
+    default Resource saveAvatarUrl(String avatarUrl) {
+        Optional<Resource> exist = findByUrl(avatarUrl);
+        if (exist.isPresent()) {
+            return exist.get();
+        }
+        Resource created = new Resource();
+        created.setType(Resource.Type.AVATAR);
+        created.setUrl(avatarUrl);
+        return save(created);
+    }
 }

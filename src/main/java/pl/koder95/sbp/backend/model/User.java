@@ -9,6 +9,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.ZoneId;
@@ -40,6 +43,12 @@ public class User implements UserDetails {
     private String passwordHash;
     @Column(nullable = false, length = 64)
     private ZoneId zoneId = ZoneId.systemDefault();
+    @ManyToOne
+    @JoinTable(name = "users_avatars",
+            joinColumns = @JoinColumn(name = "user_uuid", referencedColumnName = "uuid"),
+            inverseJoinColumns = @JoinColumn(name = "resource_uuid", referencedColumnName = "uuid")
+    )
+    private Resource avatar;
     @Column(nullable = false)
     private boolean isDeleted = false;
 

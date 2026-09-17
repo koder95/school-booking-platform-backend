@@ -14,6 +14,7 @@ public record UpdateTeacherRequestDto(
         @NotNull @Positive Long subjectId,
         String firstName, String lastName, ZoneId zoneId,
         @Pattern(regexp = "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$") String color,
-        WorkType workType, LocalDate workDueDate
+        WorkType workType, LocalDate workDueDate,
+        String avatarUrl
 ) {
 }

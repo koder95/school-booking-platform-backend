@@ -13,6 +13,7 @@ import pl.koder95.sbp.backend.dto.UpdateTeacherRequestDto;
 import pl.koder95.sbp.backend.model.Email;
 import pl.koder95.sbp.backend.model.Teacher;
 import pl.koder95.sbp.backend.repository.EmailRepository;
+import pl.koder95.sbp.backend.repository.ResourceRepository;
 import pl.koder95.sbp.backend.repository.SubjectRepository;
 import pl.koder95.sbp.backend.repository.TeacherColorRepository;
 
@@ -26,16 +27,21 @@ public interface TeacherMapper {
                     @Context SubjectRepository subjectRepository);
 
     @Mapping(target = "email", source = "email.value")
+    @Mapping(target = "avatarUrl", source = "avatar.url")
     TeacherDto toResponseDto(Teacher model);
 
+    @Mapping(target = "avatarUrl", source = "avatar.url")
     TeacherDtoWithoutEmail toResponseDtoWithoutEmail(Teacher model);
 
     @Mapping(target = "email", source = "email")
     @Mapping(target = "subject",
             expression = "java(subjectRepository.findById(dto.subjectId()).orElseThrow())")
+    @Mapping(target = "avatar",
+            expression = "java(resourceRepository.saveAvatarUrl(dto.avatarUrl()))")
     void updateModel(@MappingTarget Teacher model, UpdateTeacherRequestDto dto,
                      @Context EmailRepository repository,
-                     @Context SubjectRepository subjectRepository);
+                     @Context SubjectRepository subjectRepository,
+                     @Context ResourceRepository resourceRepository);
 
     default Email mapEmail(String email, @Context EmailRepository repository) {
         return repository.findByValue(email).orElseGet(
