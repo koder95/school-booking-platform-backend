@@ -32,6 +32,5 @@ public interface TeacherColorMapper {
             + ".orElseThrow())")
     TeacherColor toModel(UUID teacherUuid, @Context TeacherRepository teacherRepository);
 
-    @Mapping(target = "colorHex", expression = "java(color)")
-    void updateModel(@MappingTarget TeacherColor model, String color);
+    void updateModel(@MappingTarget TeacherColor model, String colorHex);
 }
