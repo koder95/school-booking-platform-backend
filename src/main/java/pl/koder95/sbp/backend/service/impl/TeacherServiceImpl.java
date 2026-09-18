@@ -19,6 +19,7 @@ import pl.koder95.sbp.backend.model.Teacher;
 import pl.koder95.sbp.backend.model.TeacherColor;
 import pl.koder95.sbp.backend.model.TeacherWorkTerm;
 import pl.koder95.sbp.backend.repository.EmailRepository;
+import pl.koder95.sbp.backend.repository.ResourceRepository;
 import pl.koder95.sbp.backend.repository.SubjectRepository;
 import pl.koder95.sbp.backend.repository.TeacherColorRepository;
 import pl.koder95.sbp.backend.repository.TeacherRepository;
@@ -38,6 +39,7 @@ public class TeacherServiceImpl implements TeacherService {
     private final TeacherColorMapper colorMapper;
     private final TeacherWorkTermRepository workTermRepository;
     private final TeacherWorkTermMapper workTermMapper;
+    private final ResourceRepository resourceRepository;
 
     @Override
     public TeacherDto get(UUID uuid) {
@@ -87,7 +89,8 @@ public class TeacherServiceImpl implements TeacherService {
         if (requestDto.email() != null) {
             updateEmail(model, requestDto.email());
         }
-        mapper.updateModel(model, requestDto, emailRepository, subjectRepository);
+        mapper.updateModel(model, requestDto,
+                emailRepository, subjectRepository, resourceRepository);
         model = repository.save(model);
         if (requestDto.color() == null) {
             return mapper.toResponseDto(model);
@@ -113,6 +116,7 @@ public class TeacherServiceImpl implements TeacherService {
     @Transactional
     public TeacherDto delete(UUID uuid) {
         Teacher teacher = repository.findById(uuid).orElseThrow();
+        teacher.setAvatar(null);
         availabilityService.deleteFor(uuid);
         TeacherWorkTerm workTerm = workTermRepository.findByTeacher(teacher);
         workTermRepository.delete(workTerm);

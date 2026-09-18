@@ -38,7 +38,7 @@ services:
       no_cache: true
     env_file: ./.env
     healthcheck:
-      test: [ "CMD", "nc", "-z", "localhost", "8080" ]
+      test: [ "CMD", "nc", "-z", "localhost", "8082" ]
       interval: 10s
       timeout: 30s
       retries: 30

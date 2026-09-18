@@ -14,6 +14,7 @@ import pl.koder95.sbp.backend.mapper.StudentMapper;
 import pl.koder95.sbp.backend.model.Email;
 import pl.koder95.sbp.backend.model.Student;
 import pl.koder95.sbp.backend.repository.EmailRepository;
+import pl.koder95.sbp.backend.repository.ResourceRepository;
 import pl.koder95.sbp.backend.repository.StudentRepository;
 import pl.koder95.sbp.backend.service.StudentService;
 
@@ -23,17 +24,18 @@ public class StudentServiceImpl implements StudentService {
     private final StudentRepository repository;
     private final StudentMapper mapper;
     private final EmailRepository emailRepository;
+    private final ResourceRepository resourceRepository;
 
     @Override
     public Page<StudentDto> getAll(Pageable pageable) {
         return repository.findAll(pageable)
-                .map(student -> mapper.toDto(student, emailRepository));
+                .map(student -> mapper.toDto(student, emailRepository, resourceRepository));
     }
 
     @Override
     public StudentDto get(UUID studentUuid) {
         return repository.findById(studentUuid)
-                .map(student -> mapper.toDto(student, emailRepository))
+                .map(student -> mapper.toDto(student, emailRepository, resourceRepository))
                 .orElseThrow(() -> new EntityNotFoundException("Student not found"));
     }
 
@@ -43,7 +45,7 @@ public class StudentServiceImpl implements StudentService {
             emailRepository.save(new Email().setValue(dto.email()));
         }
         Student student = mapper.toModel(dto, emailRepository);
-        return mapper.toDto(repository.save(student), emailRepository);
+        return mapper.toDto(repository.save(student), emailRepository, resourceRepository);
     }
 
     @Override
@@ -58,7 +60,7 @@ public class StudentServiceImpl implements StudentService {
                 .orElseThrow(
                         () -> new EntityNotFoundException("student doesn't exist: " + studentUuid)
                 );
-        mapper.updateModel(student, requestDto);
-        return mapper.toDto(student, emailRepository);
+        mapper.updateModel(student, requestDto, resourceRepository);
+        return mapper.toDto(student, emailRepository, resourceRepository);
     }
 }
