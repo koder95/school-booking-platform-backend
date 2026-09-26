@@ -131,6 +131,11 @@ public class AvailabilitySlotServiceImpl implements AvailabilitySlotService {
     }
 
     @Override
+    public List<AvailabilitySlotDto> getAll(Set<UUID> uuids) {
+        return repository.findAllById(uuids).stream().map(mapper::toDto).distinct().toList();
+    }
+
+    @Override
     public Page<AvailabilitySlotDto> getAll(Pageable pageable) {
         return repository.findAllByTimestampAfter(ZonedDateTime.now(), pageable)
                 .map(mapper::toDto);

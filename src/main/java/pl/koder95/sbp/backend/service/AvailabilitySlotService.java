@@ -3,6 +3,7 @@ package pl.koder95.sbp.backend.service;
 import java.time.Period;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -36,6 +37,8 @@ public interface AvailabilitySlotService {
     List<AvailabilitySlotDto> deleteAllFor(UUID teacherUuid);
 
     Page<AvailabilitySlotDto> deleteAllFor(UUID teacherUuid, Pageable pageable);
+
+    List<AvailabilitySlotDto> getAll(Set<UUID> uuids);
 
     Page<AvailabilitySlotDto> getAll(Pageable pageable);
 

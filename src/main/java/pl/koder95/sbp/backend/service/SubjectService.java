@@ -1,5 +1,7 @@
 package pl.koder95.sbp.backend.service;
 
+import java.util.List;
+import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import pl.koder95.sbp.backend.dto.CreateSubjectRequestDto;
@@ -18,4 +20,6 @@ public interface SubjectService {
     SubjectDto delete(Long id);
 
     Page<SubjectDto> getAll(Pageable pageable);
+
+    List<SubjectDto> getAll(Set<Long> ids);
 }
