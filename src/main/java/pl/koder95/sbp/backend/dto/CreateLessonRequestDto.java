@@ -3,7 +3,9 @@ package pl.koder95.sbp.backend.dto;
 import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
+import lombok.Builder;
 
+@Builder(builderClassName = "Builder")
 public record CreateLessonRequestDto(
         @NotNull UUID availabilitySlotUuid,
         @NotNull UUID teacherUuid,
