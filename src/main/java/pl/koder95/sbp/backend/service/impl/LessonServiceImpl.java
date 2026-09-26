@@ -1,6 +1,7 @@
 package pl.koder95.sbp.backend.service.impl;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -53,7 +54,8 @@ public class LessonServiceImpl implements LessonService {
             Teacher teacher = saved.getAssigned();
             AvailabilitySlot slot = slotOpt.get();
             slot.removeTeacher(teacher);
-            if (slot.getTeachers() == null || slot.getTeachers().isEmpty()) {
+            Set<Teacher> availableTeachers = slot.getTeachers();
+            if (availableTeachers == null || availableTeachers.isEmpty()) {
                 teacherRepository.findByAvailabilitySlot(slot)
                         .forEach(t -> t.getAvailabilitySlots().remove(slot));
                 availabilitySlotRepository.delete(slot);
