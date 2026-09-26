@@ -11,6 +11,8 @@ import pl.koder95.sbp.backend.dto.UpdateLessonRequestDto;
 public interface LessonService {
     LessonDto create(CreateLessonRequestDto requestDto);
 
+    LessonDto generateFromAvailableSlot(UUID availableSlotUuid);
+
     Page<LessonDto> getAll(Pageable pageable);
 
     LessonDto getByUuid(UUID lessonUuid);
