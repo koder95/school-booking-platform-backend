@@ -20,3 +20,5 @@ COPY --from=builder school-booking-platform-backend/sbpb/application/ ./
 ENTRYPOINT ["java", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:54342", "org.springframework.boot.loader.launch.JarLauncher"]
 EXPOSE 8080
 EXPOSE 54342
+HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:8080/actuator/health/readiness || exit 1
