@@ -110,6 +110,13 @@ public class LessonServiceImpl implements LessonService {
     }
 
     @Override
+    public Page<LessonDto> generateFromAllAvailableSlots(Pageable pageable) {
+        return availabilitySlotRepository.findAll(pageable)
+                .map(AvailabilitySlot::getUuid)
+                .map(this::generateFromAvailableSlot);
+    }
+
+    @Override
     public Page<LessonDto> getAll(Pageable pageable) {
         return repository.findAll(pageable)
                 .map(lesson -> mapper.toDto(lesson, bookingRepository));

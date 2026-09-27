@@ -39,6 +39,13 @@ public class LessonController {
         return lessonService.getAll(pageable);
     }
 
+    @PostMapping("/generate")
+    @Operation(summary = "Generate lessons", description = "Generate lessons from all "
+            + "availability slots and get all with pagination")
+    public Page<LessonDto> generate(@ParameterObject Pageable pageable) {
+        return lessonService.generateFromAllAvailableSlots(pageable);
+    }
+
     @GetMapping("/{lessonUuid}")
     @Operation(summary = "Get lesson by UUID", description = "Get a specific lesson by its UUID")
     public LessonDto getByUuid(@PathVariable UUID lessonUuid) {

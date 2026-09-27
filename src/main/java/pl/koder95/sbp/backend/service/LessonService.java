@@ -13,6 +13,8 @@ public interface LessonService {
 
     LessonDto generateFromAvailableSlot(UUID availableSlotUuid);
 
+    Page<LessonDto> generateFromAllAvailableSlots(Pageable pageable);
+
     Page<LessonDto> getAll(Pageable pageable);
 
     LessonDto getByUuid(UUID lessonUuid);
