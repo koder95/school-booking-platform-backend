@@ -40,6 +40,8 @@ public class LessonController {
     }
 
     @PostMapping("/generate")
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
     @Operation(summary = "Generate lessons", description = "Generate lessons from all "
             + "availability slots and get all with pagination")
     public Page<LessonDto> generate(@ParameterObject Pageable pageable) {
