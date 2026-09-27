@@ -9,6 +9,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.time.ZoneId;
@@ -43,6 +44,8 @@ public class Teacher {
     private Subject subject;
     @ManyToMany(mappedBy = "teachers")
     private Set<AvailabilitySlot> availabilitySlots;
+    @OneToMany(mappedBy = "assigned")
+    private Set<Lesson> lessons;
     @Column(nullable = false, length = 64)
     private ZoneId zoneId = ZoneId.systemDefault();
     @ManyToOne

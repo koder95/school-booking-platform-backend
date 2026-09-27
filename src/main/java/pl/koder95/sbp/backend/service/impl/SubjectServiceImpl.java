@@ -1,5 +1,7 @@
 package pl.koder95.sbp.backend.service.impl;
 
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -51,5 +53,12 @@ public class SubjectServiceImpl implements SubjectService {
     @Override
     public Page<SubjectDto> getAll(Pageable pageable) {
         return repository.findAll(pageable).map(mapper::toResponseDto);
+    }
+
+    @Override
+    public List<SubjectDto> getAll(Set<Long> ids) {
+        return repository.findAllById(ids).stream()
+                .map(mapper::toResponseDto)
+                .toList();
     }
 }

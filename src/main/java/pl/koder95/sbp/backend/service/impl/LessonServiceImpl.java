@@ -1,12 +1,17 @@
 package pl.koder95.sbp.backend.service.impl;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import pl.koder95.sbp.backend.dto.CreateLessonRequestDto;
 import pl.koder95.sbp.backend.dto.LessonDto;
@@ -18,6 +23,7 @@ import pl.koder95.sbp.backend.model.Authority;
 import pl.koder95.sbp.backend.model.AvailabilitySlot;
 import pl.koder95.sbp.backend.model.Lesson;
 import pl.koder95.sbp.backend.model.Student;
+import pl.koder95.sbp.backend.model.Subject;
 import pl.koder95.sbp.backend.model.Teacher;
 import pl.koder95.sbp.backend.model.User;
 import pl.koder95.sbp.backend.repository.AvailabilitySlotRepository;
@@ -40,6 +46,8 @@ public class LessonServiceImpl implements LessonService {
     private final BookingRepository bookingRepository;
     private final AuthenticationUtil authenticationUtil;
     private final LessonSpecification.Builder specificationBuilder;
+    @Value("${sbp.backend.lesson.default-max-enrolled:10}")
+    private int defaultMaxEnrolled;
 
     @Override
     @Transactional
@@ -53,13 +61,59 @@ public class LessonServiceImpl implements LessonService {
             Teacher teacher = saved.getAssigned();
             AvailabilitySlot slot = slotOpt.get();
             slot.removeTeacher(teacher);
-            if (slot.getTeachers() == null || slot.getTeachers().isEmpty()) {
+            Set<Teacher> availableTeachers = slot.getTeachers();
+            if (availableTeachers == null || availableTeachers.isEmpty()) {
                 teacherRepository.findByAvailabilitySlot(slot)
                         .forEach(t -> t.getAvailabilitySlots().remove(slot));
                 availabilitySlotRepository.delete(slot);
             }
         }
         return mapper.toDto(saved, bookingRepository);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public LessonDto generateFromAvailableSlot(UUID availableSlotUuid) {
+        AvailabilitySlot slot = availabilitySlotRepository
+                .findById(availableSlotUuid)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "AvailableSlot " + availableSlotUuid + " does not exist"
+                ));
+        var request = CreateLessonRequestDto.builder()
+                .maxEnrolled(defaultMaxEnrolled)
+                .availabilitySlotUuid(availableSlotUuid);
+        Set<Teacher> teachers = slot.getTeachers();
+        if (teachers == null || teachers.isEmpty()) {
+            availabilitySlotRepository.delete(slot);
+            throw new EntityNotFoundException(
+                    "AvailableSlot " + availableSlotUuid + " was broken so it was removed"
+            );
+        }
+        Set<Subject> subjects = teachers.stream()
+                .map(Teacher::getSubject)
+                .collect(Collectors.toSet());
+        Teacher teacher;
+        if (teachers.size() == 1) {
+            teacher = List.copyOf(teachers).getFirst();
+        } else if (subjects.size() == 1) {
+            teacher = teacherRepository.findTeacherWithFewestLessonsAmong(teachers)
+                    .orElse(teachers.iterator().next());
+        } else {
+            Subject subjectSelect = subjectRepository.findSubjectWithFewestLessonAmong(subjects)
+                    .orElse(List.copyOf(subjects).get((int) (subjects.size() * Math.random())));
+            teacher = teacherRepository.findTeacherWithFewestLessonsAmong(teachers, subjectSelect)
+                    .orElseThrow(() -> new RuntimeException(
+                            "Somehow it cannot select a teacher for a new lesson"
+                    ));
+        }
+        return create(request.teacherUuid(teacher.getUuid()).build());
+    }
+
+    @Override
+    public Page<LessonDto> generateFromAllAvailableSlots(Pageable pageable) {
+        return availabilitySlotRepository.findAll(pageable)
+                .map(AvailabilitySlot::getUuid)
+                .map(this::generateFromAvailableSlot);
     }
 
     @Override
