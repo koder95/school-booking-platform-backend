@@ -19,11 +19,18 @@ public class TaskScheduledConfig {
 
     @Scheduled(cron = "0 0 * * * *")
     public void cleanAvailabilitySlots() {
+        log.info("Removing old availability slots...");
         availabilitySlotService.cleanOldAvailabilitySlots();
     }
 
     @Scheduled(cron = "0 0 0 * * *")
     public void generateLessons() {
-        lessonService.generateFromAllAvailableSlots(Pageable.unpaged());
+        log.info("Generating available slots...");
+        long slotsCount = availabilitySlotService.createOrGetAll(Pageable.unpaged())
+                .getTotalElements();
+        log.info("Generated slots: {}", slotsCount);
+        if (slotsCount != 0) {
+            lessonService.generateFromAllAvailableSlots(Pageable.unpaged());
+        }
     }
 }

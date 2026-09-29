@@ -35,6 +35,9 @@ public class ZonedDateTimeFactoryImpl implements ZonedDateTimeFactory {
     }
 
     private Optional<TimeRangeDto> workTimeRange(LocalDate localDate, AvailabilityDto dto) {
+        if (localDate == null || dto == null) {
+            return Optional.empty();
+        }
         return switch (localDate.getDayOfWeek()) {
             case MONDAY -> Optional.of(dto.monday());
             case TUESDAY -> Optional.of(dto.tuesday());
@@ -46,6 +49,9 @@ public class ZonedDateTimeFactoryImpl implements ZonedDateTimeFactory {
     }
 
     private TimeRangeDto breakTimeRange(AvailabilityDto teacherAvailability) {
+        if (teacherAvailability == null) {
+            return new TimeRangeDto(LocalTime.of(13, 0), LocalTime.of(14,0));
+        }
         return teacherAvailability.lunchBreak();
     }
 
@@ -61,6 +67,12 @@ public class ZonedDateTimeFactoryImpl implements ZonedDateTimeFactory {
     private List<LocalDateTime> buildLocalDateTimes(
             LocalDate localDate, TimeRangeDto workTimeRange, TimeRangeDto breakTimeRange
     ) {
+        if (workTimeRange == null) {
+            workTimeRange = new TimeRangeDto(LocalTime.of(8, 0), LocalTime.of(16, 0));
+        }
+        if (breakTimeRange == null) {
+            breakTimeRange = breakTimeRange(null);
+        }
         return buildLocalDateTimes(localDate, workTimeRange.startTime(), workTimeRange.endTime(),
                 breakTimeRange.startTime(), breakTimeRange.endTime());
     }
@@ -68,9 +80,23 @@ public class ZonedDateTimeFactoryImpl implements ZonedDateTimeFactory {
     private List<LocalDateTime> buildLocalDateTimes(LocalDate localDate,
                                                     LocalTime startWork, LocalTime endWork,
                                                     LocalTime startBreak, LocalTime endBreak) {
-        ArrayList<LocalTime> times = new ArrayList<>(
-                timeFactory.createTimestampsBetween(startWork, endWork.minusSeconds(1)).stream()
-                        .toList()
+        if (startWork == null || endWork == null) {
+            return List.of();
+        }
+        if (startBreak == null && endBreak == null) {
+            startBreak = endBreak = endWork;
+        }
+        if (startBreak == null) {
+            startBreak = startWork;
+        }
+        if (endBreak == null) {
+            endBreak = endWork;
+        }
+        if (endWork.getSecond() == 0) {
+            endWork = endWork.minusSeconds(1);
+        }
+        List<LocalTime> times = new ArrayList<>(
+                timeFactory.createTimestampsBetween(startWork, endWork)
         );
         while (startBreak.isBefore(endBreak)) {
             times.remove(startBreak);

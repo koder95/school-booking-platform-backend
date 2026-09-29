@@ -114,8 +114,11 @@ public class LessonServiceImpl implements LessonService {
     @Override
     public Page<LessonDto> generateFromAllAvailableSlots(Pageable pageable) {
         log.info("Starting generate lessons...");
-        return availabilitySlotRepository.findAll(pageable)
-                .map(AvailabilitySlot::getUuid)
+        Page<AvailabilitySlot> slots = availabilitySlotRepository.findAll(pageable);
+        if (slots.isEmpty()) {
+            log.info("No available slots.");
+        }
+        return slots.map(AvailabilitySlot::getUuid)
                 .map(this::generateFromAvailableSlot)
                 .map(lessonDto -> {
                     log.info("Generated lesson {}, assigned: {}",

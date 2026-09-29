@@ -10,6 +10,15 @@ import pl.koder95.sbp.backend.factory.LocalDateFactory;
 public class LocalDateFactoryImpl implements LocalDateFactory {
     @Override
     public List<LocalDate> createDatesForPeriod(LocalDate start, LocalDate end) {
+        if (start == null && end == null) {
+            return List.of();
+        }
+        if (start == null) {
+            start = LocalDate.now();
+        }
+        if (end == null) {
+            end = start;
+        }
         List<LocalDate> dates = new ArrayList<>();
         while (!start.isAfter(end)) {
             dates.add(start);
