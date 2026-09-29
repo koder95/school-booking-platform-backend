@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +36,7 @@ import pl.koder95.sbp.backend.security.AuthenticationUtil;
 import pl.koder95.sbp.backend.service.LessonService;
 import pl.koder95.sbp.backend.specification.LessonSpecification;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class LessonServiceImpl implements LessonService {
@@ -111,9 +113,15 @@ public class LessonServiceImpl implements LessonService {
 
     @Override
     public Page<LessonDto> generateFromAllAvailableSlots(Pageable pageable) {
+        log.info("Starting generate lessons...");
         return availabilitySlotRepository.findAll(pageable)
                 .map(AvailabilitySlot::getUuid)
-                .map(this::generateFromAvailableSlot);
+                .map(this::generateFromAvailableSlot)
+                .map(lessonDto -> {
+                    log.info("Generated lesson {}, assigned: {}",
+                            lessonDto.uuid(), lessonDto.teacherUuid());
+                    return lessonDto;
+                });
     }
 
     @Override

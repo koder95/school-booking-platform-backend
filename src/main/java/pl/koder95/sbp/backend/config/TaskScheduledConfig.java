@@ -24,11 +24,6 @@ public class TaskScheduledConfig {
 
     @Scheduled(cron = "0 0 0 * * *")
     public void generateLessons() {
-        log.info("Generating lessons...");
-        lessonService.generateFromAllAvailableSlots(Pageable.unpaged())
-                .forEach(lessonDto -> log.info(
-                        "Created lession {}, assigned: {}",
-                        lessonDto.uuid(), lessonDto.teacherUuid()
-                ));
+        lessonService.generateFromAllAvailableSlots(Pageable.unpaged());
     }
 }
