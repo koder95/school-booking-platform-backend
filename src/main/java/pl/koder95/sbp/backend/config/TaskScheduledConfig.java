@@ -24,6 +24,7 @@ public class TaskScheduledConfig {
 
     @Scheduled(cron = "0 0 0 * * *")
     public void generateLessons() {
+        availabilitySlotService.createOrGetAll(Pageable.unpaged());
         lessonService.generateFromAllAvailableSlots(Pageable.unpaged());
     }
 }
