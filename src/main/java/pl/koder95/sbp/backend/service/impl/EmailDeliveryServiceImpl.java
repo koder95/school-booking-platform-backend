@@ -7,12 +7,14 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.time.ZonedDateTime;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.ott.OneTimeToken;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -50,8 +52,9 @@ public class EmailDeliveryServiceImpl
             helper.setTo(dto.recipient());
             helper.setSubject(dto.subject());
             helper.setText(dto.body(), true);
-            mailSender.send(mimeMessage);
-            updateStatus(deliveryLog, DeliveryStatus.SENT, null);
+            sendAsync(mimeMessage).thenRun(() -> {
+                updateStatus(deliveryLog, DeliveryStatus.SENT, null);
+            });
         } catch (RuntimeException | MessagingException | UnsupportedEncodingException e) {
             ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
             e.printStackTrace(new PrintStream(errorStream));
@@ -61,6 +64,16 @@ public class EmailDeliveryServiceImpl
             );
         } finally {
             logRepository.save(deliveryLog);
+        }
+    }
+
+    @Async
+    public CompletableFuture<DeliveryStatus> sendAsync(MimeMessage mimeMessage) {
+        try {
+            mailSender.send(mimeMessage);
+            return CompletableFuture.completedFuture(DeliveryStatus.SENT);
+        } catch (RuntimeException ex) {
+            return CompletableFuture.failedFuture(ex);
         }
     }
 
