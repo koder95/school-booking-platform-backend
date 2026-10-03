@@ -1,22 +1,21 @@
 package pl.koder95.sbp.backend.service.impl;
 
-import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
 import java.time.ZonedDateTime;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.ott.OneTimeToken;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import pl.koder95.sbp.backend.config.MagicLinkConfig;
 import pl.koder95.sbp.backend.dto.EmailDeliveryInfoDto;
@@ -43,48 +42,7 @@ public class EmailDeliveryServiceImpl
     private String mailFrom;
 
     @Override
-    public void send(@Validated SendEmailRequestDto dto) {
-        EmailDeliveryLog deliveryLog = prepareSend(dto);
-        MimeMessage mimeMessage = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
-        try {
-            helper.setFrom(mailFrom, "School Booking Platform");
-            helper.setTo(dto.recipient());
-            helper.setSubject(dto.subject());
-            helper.setText(dto.body(), true);
-            sendAsync(mimeMessage).thenRun(() -> {
-                updateStatus(deliveryLog, DeliveryStatus.SENT, null);
-            });
-        } catch (RuntimeException | MessagingException | UnsupportedEncodingException e) {
-            ByteArrayOutputStream errorStream = new ByteArrayOutputStream();
-            e.printStackTrace(new PrintStream(errorStream));
-            updateStatus(deliveryLog, DeliveryStatus.FAILED, errorStream.toString());
-            throw new EmailDeliveryException(
-                    "Email wasn't sent (log #%d).".formatted(deliveryLog.getId())
-            );
-        } finally {
-            logRepository.save(deliveryLog);
-        }
-    }
-
-    @Async
-    public CompletableFuture<DeliveryStatus> sendAsync(MimeMessage mimeMessage) {
-        try {
-            mailSender.send(mimeMessage);
-            return CompletableFuture.completedFuture(DeliveryStatus.SENT);
-        } catch (RuntimeException ex) {
-            return CompletableFuture.failedFuture(ex);
-        }
-    }
-
-    private void updateStatus(EmailDeliveryLog deliveryLog,
-                              DeliveryStatus status, String errorMessage) {
-        deliveryLog.setStatus(status);
-        deliveryLog.setErrorMessage(errorMessage);
-    }
-
-    private EmailDeliveryLog prepareSend(SendEmailRequestDto dto) {
-        Objects.requireNonNull(dto);
+    public void requestAsyncSend(@Validated SendEmailRequestDto dto) {
         EmailDeliveryLog log = new EmailDeliveryLog();
         log.setSubject(dto.subject());
         log.setBody(dto.body());
@@ -95,7 +53,22 @@ public class EmailDeliveryServiceImpl
             created.setValue(recipientEmail);
             return emailRepository.save(created);
         }));
-        return logRepository.save(log);
+    }
+
+    private MimeMessage createMimeMessage(EmailDeliveryLog log) {
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage);
+        try {
+            helper.setFrom(mailFrom, "School Booking Platform");
+            helper.setTo(log.getRecipient().getValue());
+            helper.setSubject(log.getSubject());
+            helper.setText(log.getBody(), true);
+        } catch (Exception e) {
+            log.setStatus(DeliveryStatus.FAILED);
+            log.setErrorMessage(e.getMessage());
+            throw new EmailDeliveryException("Cannot create a message");
+        }
+        return mimeMessage;
     }
 
     @Override
@@ -111,7 +84,7 @@ public class EmailDeliveryServiceImpl
         String emailBody = "<html><body><p>Your link: <a href=\"%s\">%s</a></p></body></html>"
                 .formatted(magicLink, magicLink);
         try {
-            send(new SendEmailRequestDto(username, "Authenticate yourself", emailBody));
+            requestAsyncSend(new SendEmailRequestDto(username, "Authenticate yourself", emailBody));
         } catch (Exception e) {
             return new EmailDeliveryInfoDto(
                     createdAt, DeliveryStatus.FAILED, "token delivery failed", username
@@ -130,5 +103,37 @@ public class EmailDeliveryServiceImpl
                 log.getErrorMessage(),
                 log.getRecipient().getValue()
         ));
+    }
+
+    @Override
+    @Transactional
+    public void sendAll() {
+        List<EmailDeliveryLog> pending = logRepository.findByStatus(DeliveryStatus.PENDING);
+        try (ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor()) {
+            executorService.invokeAll(pending.stream()
+                    .map(log -> new AsyncSendPreparation(log, createMimeMessage(log)))
+                    .map(this::createCallable)
+                    .toList()
+            );
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Interrupted sending emails", e);
+        }
+    }
+
+    private Callable<EmailDeliveryLog> createCallable(AsyncSendPreparation preparation) {
+        return () -> {
+            try {
+                mailSender.send(preparation.message);
+                preparation.deliveryLog.setStatus(DeliveryStatus.SENT);
+            } catch (MailException e) {
+                preparation.deliveryLog.setStatus(DeliveryStatus.FAILED);
+                preparation.deliveryLog.setErrorMessage(e.getMessage());
+            }
+            return preparation.deliveryLog;
+        };
+    }
+
+    private record AsyncSendPreparation(EmailDeliveryLog deliveryLog, MimeMessage message) {
     }
 }

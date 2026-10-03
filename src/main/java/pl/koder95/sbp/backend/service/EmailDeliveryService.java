@@ -6,7 +6,9 @@ import pl.koder95.sbp.backend.dto.EmailDeliveryInfoDto;
 import pl.koder95.sbp.backend.dto.SendEmailRequestDto;
 
 public interface EmailDeliveryService {
-    void send(SendEmailRequestDto dto);
+    void requestAsyncSend(SendEmailRequestDto dto);
 
     Page<EmailDeliveryInfoDto> getAll(Pageable pageable);
+
+    void sendAll();
 }

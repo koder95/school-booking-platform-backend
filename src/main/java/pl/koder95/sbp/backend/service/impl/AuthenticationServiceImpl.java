@@ -25,7 +25,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 new UsernamePasswordAuthenticationToken(request.email(), request.password())
         );
         String token = jwtUtil.generateToken(authenticate.getName());
-        emailDeliveryService.send(new SendEmailRequestDto(
+        emailDeliveryService.requestAsyncSend(new SendEmailRequestDto(
                 request.email(), "Login notification",
                 "A new login was detected using your email address. If this wasn't you, please "
                         + "secure your account immediately and contact the administrator."
