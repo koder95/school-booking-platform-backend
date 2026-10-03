@@ -64,7 +64,7 @@ public class BookingServiceImpl implements BookingService {
                 throw new IllegalBookingException("no more free slots for lesson: " + lessonUuid);
             }
             saved = repository.save(created);
-            emailDeliveryService.send(new SendEmailRequestDto(
+            emailDeliveryService.requestAsyncSend(new SendEmailRequestDto(
                     student.getEmail().getValue(),
                     "Booking status",
                     createEmailBody(saved.getUuid(), lesson.getStartTime(), trial)
