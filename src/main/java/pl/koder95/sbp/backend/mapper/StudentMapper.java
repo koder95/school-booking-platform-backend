@@ -8,6 +8,7 @@ import pl.koder95.sbp.backend.config.MapperConfig;
 import pl.koder95.sbp.backend.dto.CreateStudentRequestDto;
 import pl.koder95.sbp.backend.dto.StudentDto;
 import pl.koder95.sbp.backend.dto.UpdateStudentRequestDto;
+import pl.koder95.sbp.backend.model.Email;
 import pl.koder95.sbp.backend.model.Student;
 import pl.koder95.sbp.backend.model.User;
 import pl.koder95.sbp.backend.repository.EmailRepository;
@@ -29,4 +30,8 @@ public interface StudentMapper {
             expression = "java(resourceRepository.saveAvatarUrl(requestDto.avatarUrl()))")
     void updateModel(@MappingTarget Student student, UpdateStudentRequestDto requestDto,
                      @Context ResourceRepository resourceRepository);
+
+    default String map(Email emailEntity) {
+        return emailEntity.getValue();
+    }
 }

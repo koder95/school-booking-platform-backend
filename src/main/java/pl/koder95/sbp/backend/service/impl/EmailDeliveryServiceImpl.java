@@ -7,6 +7,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +30,7 @@ import pl.koder95.sbp.backend.repository.EmailRepository;
 import pl.koder95.sbp.backend.service.EmailDeliveryService;
 import pl.koder95.sbp.backend.service.OneTimeTokenDeliveryService;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailDeliveryServiceImpl
@@ -124,11 +126,14 @@ public class EmailDeliveryServiceImpl
     private Callable<EmailDeliveryLog> createCallable(AsyncSendPreparation preparation) {
         return () -> {
             try {
+                log.info("Sending email...");
                 mailSender.send(preparation.message);
                 preparation.deliveryLog.setStatus(DeliveryStatus.SENT);
+                log.info("successfully sent to #{}", preparation.deliveryLog.getRecipient());
             } catch (MailException e) {
                 preparation.deliveryLog.setStatus(DeliveryStatus.FAILED);
                 preparation.deliveryLog.setErrorMessage(e.getMessage());
+                log.info("failed sent to #{}", preparation.deliveryLog.getRecipient());
             }
             return preparation.deliveryLog;
         };

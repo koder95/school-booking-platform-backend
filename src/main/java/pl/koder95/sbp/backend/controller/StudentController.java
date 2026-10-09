@@ -13,12 +13,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import pl.koder95.sbp.backend.dto.CreateStudentRequestDto;
+import pl.koder95.sbp.backend.dto.StudentAbilitiesDto;
 import pl.koder95.sbp.backend.dto.StudentDto;
+import pl.koder95.sbp.backend.dto.UpdateStudentAbilitiesRequestDto;
 import pl.koder95.sbp.backend.dto.UpdateStudentRequestDto;
+import pl.koder95.sbp.backend.service.AbilitiesService;
 import pl.koder95.sbp.backend.service.StudentService;
 
 @RestController
@@ -27,6 +31,7 @@ import pl.koder95.sbp.backend.service.StudentService;
 @Tag(name = "Student management", description = "Endpoints for managing students.")
 public class StudentController {
     private final StudentService studentService;
+    private final AbilitiesService abilitiesService;
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -65,5 +70,22 @@ public class StudentController {
     public StudentDto update(@PathVariable UUID studentUuid,
                              @RequestBody UpdateStudentRequestDto requestDto) {
         return studentService.update(studentUuid, requestDto);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
+    @GetMapping("/{studentUuid}/abilities")
+    @Operation(summary = "Get abilities for a student")
+    public StudentAbilitiesDto getAbilities(@PathVariable UUID studentUuid) {
+        return abilitiesService.getAbilities(studentUuid);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
+    @PutMapping("/{studentUuid}/abilities")
+    @Operation(summary = "Set abilities for a student")
+    public StudentAbilitiesDto setAbilities(@PathVariable UUID studentUuid,
+                                            @RequestBody UpdateStudentAbilitiesRequestDto dto) {
+        return abilitiesService.updateAbilities(studentUuid, dto);
     }
 }
