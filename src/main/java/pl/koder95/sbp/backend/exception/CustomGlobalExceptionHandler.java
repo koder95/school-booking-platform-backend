@@ -84,7 +84,7 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
             AdminAccountAlreadyExists ex, HttpServletRequest request) {
         HttpStatus status = HttpStatus.FORBIDDEN;
         return createUniversalErrorMessageFormat(request, status,
-                List.of(ex.getMessage()));
+                List.of(ex.getMessage() == null ? "cannot do this again" : ex.getMessage()));
     }
 
     @ExceptionHandler(JwtException.class)

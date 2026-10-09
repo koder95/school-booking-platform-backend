@@ -38,7 +38,7 @@ public class ZonedDateTimeFactoryImpl implements ZonedDateTimeFactory {
         if (localDate == null || dto == null) {
             return Optional.empty();
         }
-        TimeRangeDto result = switch (localDate.getDayOfWeek()) {
+        TimeRangeDto value = switch (localDate.getDayOfWeek()) {
             case MONDAY -> dto.monday();
             case TUESDAY -> dto.tuesday();
             case WEDNESDAY -> dto.wednesday();
@@ -46,7 +46,7 @@ public class ZonedDateTimeFactoryImpl implements ZonedDateTimeFactory {
             case FRIDAY -> dto.friday();
             default -> null;
         };
-        return Optional.ofNullable(result);
+        return Optional.ofNullable(value);
     }
 
     private TimeRangeDto breakTimeRange(AvailabilityDto teacherAvailability) {

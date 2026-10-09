@@ -1,6 +1,9 @@
 package pl.koder95.sbp.backend.service.impl;
 
 import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -15,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.koder95.sbp.backend.dto.BookingDecisionDto;
 import pl.koder95.sbp.backend.dto.BookingDto;
 import pl.koder95.sbp.backend.dto.SendEmailRequestDto;
+import pl.koder95.sbp.backend.dto.StudentAbilitiesDto;
+import pl.koder95.sbp.backend.dto.UpdateStudentAbilitiesRequestDto;
 import pl.koder95.sbp.backend.exception.EntityNotFoundException;
 import pl.koder95.sbp.backend.exception.IllegalBookingException;
 import pl.koder95.sbp.backend.mapper.BookingMapper;
@@ -25,6 +30,7 @@ import pl.koder95.sbp.backend.repository.BookingRepository;
 import pl.koder95.sbp.backend.repository.LessonRepository;
 import pl.koder95.sbp.backend.repository.StudentRepository;
 import pl.koder95.sbp.backend.security.AuthenticationUtil;
+import pl.koder95.sbp.backend.service.AbilitiesService;
 import pl.koder95.sbp.backend.service.BookingService;
 import pl.koder95.sbp.backend.service.EmailDeliveryService;
 
@@ -38,9 +44,16 @@ public class BookingServiceImpl implements BookingService {
     private final AuthenticationUtil authenticationUtil;
     private final EmailDeliveryService emailDeliveryService;
     private final StudentRepository studentRepository;
+    private final AbilitiesService abilitiesService;
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     private BookingDto bookAs(Student student, UUID lessonUuid) {
+        StudentAbilitiesDto abilitiesDto = abilitiesService.getAbilities(student.getUuid());
+        if (abilitiesDto.remainingLessons() < 1) {
+            throw new IllegalBookingException(
+                    "Booking out of limits. Increase a remaining lessons"
+            );
+        }
         Lesson lesson;
         Booking created;
         try {
@@ -64,11 +77,15 @@ public class BookingServiceImpl implements BookingService {
                 throw new IllegalBookingException("no more free slots for lesson: " + lessonUuid);
             }
             saved = repository.save(created);
-            emailDeliveryService.send(new SendEmailRequestDto(
+            emailDeliveryService.requestAsyncSend(new SendEmailRequestDto(
                     student.getEmail().getValue(),
                     "Booking status",
                     createEmailBody(saved.getUuid(), lesson.getStartTime(), trial)
             ));
+            abilitiesService.updateAbilities(
+                    student.getUuid(),
+                    new UpdateStudentAbilitiesRequestDto(abilitiesDto.remainingLessons() - 1)
+            );
             return mapper.toDto(saved);
         } finally {
             lock.writeLock().unlock();
@@ -122,17 +139,28 @@ public class BookingServiceImpl implements BookingService {
                 )
                 .filter(booking -> !booking.isAccepted())
                 .collect(Collectors.toSet());
+        returnRemainingLessons(rejected);
         repository.deleteAll(rejected);
         log.info("Decision REJECT applied to bookings: {}", rejected);
         return getAll(pageable);
+    }
+
+    private void returnRemainingLessons(Set<Booking> rejected) {
+        List<Student> list = rejected.stream().map(Booking::getStudent).toList();
+        Map<UUID, Integer> remainingLessons = new HashMap<>();
+        list.forEach(student -> remainingLessons.compute(student.getUuid(), (uuid, integer) -> {
+            if (integer == null || integer < 1) {
+                integer = 0;
+            }
+            return integer + 1;
+        }));
     }
 
     private String createEmailBody(UUID uuid, ZonedDateTime startTime, boolean trial) {
         String form = "<html><body>"
                 + "<h1>Booking status</h1><p>%s</p><p>%s</p><p>%s</p>"
                 + "</body></html>";
-        String firstParagraph = trial
-                  ? """
+        String firstParagraph = trial ? """
                   Your booking has been created and is pending approval.
                   We will notify you once it has been accepted.
                   Until then, your booking is temporary confirmed but it could be changed.

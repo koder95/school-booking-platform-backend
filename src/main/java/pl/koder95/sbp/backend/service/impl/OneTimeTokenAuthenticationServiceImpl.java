@@ -8,6 +8,7 @@ import java.time.Duration;
 import java.util.Objects;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.ott.GenerateOneTimeTokenRequest;
 import org.springframework.security.authentication.ott.OneTimeToken;
 import org.springframework.security.authentication.ott.OneTimeTokenAuthenticationToken;
@@ -30,6 +31,7 @@ import pl.koder95.sbp.backend.service.EmailDeliveryService;
 import pl.koder95.sbp.backend.service.OneTimeTokenAuthenticationService;
 import pl.koder95.sbp.backend.service.OneTimeTokenDeliveryService;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OneTimeTokenAuthenticationServiceImpl implements OneTimeTokenAuthenticationService {
@@ -46,9 +48,11 @@ public class OneTimeTokenAuthenticationServiceImpl implements OneTimeTokenAuthen
         String email = requestDto.email();
         Bucket onePerMinute = proxyManager.builder()
                 .build("ott:generate:" + email, onePerMinuteConfig());
+        log.info("Bucket state: {} token(s)", onePerMinute.getAvailableTokens());
         if (onePerMinute.tryConsume(1)) {
             Bucket fivePerHour = proxyManager.builder()
                     .build("ott:generate:" + email, fivePerHourConfig());
+            log.info("Bucket state: {} token(s)", fivePerHour.getAvailableTokens());
             if (!fivePerHour.tryConsume(1)) {
                 throw new RequestRateLimitException("Request rate limit exceeded");
             }
@@ -59,6 +63,7 @@ public class OneTimeTokenAuthenticationServiceImpl implements OneTimeTokenAuthen
                 .getRemoteAddr();
         Bucket fivePerFiveMinutes = proxyManager.builder()
                 .build("ott:generate:" + email + ":" + ip, fivePerFiveMinutesConfig());
+        log.info("Bucket state: {} token(s)", fivePerFiveMinutes.getAvailableTokens());
         if (fivePerFiveMinutes.tryConsume(1)) {
             return consumeGenerateOttRequest(requestDto);
         }
@@ -93,7 +98,7 @@ public class OneTimeTokenAuthenticationServiceImpl implements OneTimeTokenAuthen
         }
         Student principal = studentRepository.findByEmail(consumed.getUsername()).orElseThrow();
         String jwt = jwtUtil.generateToken(principal.getUsername());
-        emailDeliveryService.send(new SendEmailRequestDto(
+        emailDeliveryService.requestAsyncSend(new SendEmailRequestDto(
                 principal.getUsername(), "Login notification",
                 "A new login was detected using your email address. If this wasn't you, please "
                         + "contact the administrator."

@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: 018-create-students-abilities-table
+      author: Koder95
+      changes:
+        - createTable:
+            tableName: students_abilities
+            columns:
+              - column:
+                  name: student_uuid
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    foreignKeyName: fk_students_ability_uuid
+                    references: users(uuid)
+              - column:
+                  name: remaining_lessons
+                  type: integer
+                  defaultValue: 0
+                  constraints:
+                    nullable: false

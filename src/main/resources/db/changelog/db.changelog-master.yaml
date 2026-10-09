@@ -33,3 +33,5 @@ databaseChangeLog:
       file: db/changelog/changes/016-create-teachers-avatars-table.yml
   - include:
       file: db/changelog/changes/017-create-users-avatars-table.yml
+  - include:
+      file: db/changelog/changes/018-create-students-abilities-table.yml
