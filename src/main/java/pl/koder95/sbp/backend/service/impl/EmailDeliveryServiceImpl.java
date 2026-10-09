@@ -3,6 +3,7 @@ package pl.koder95.sbp.backend.service.impl;
 import jakarta.mail.internet.MimeMessage;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -55,6 +56,7 @@ public class EmailDeliveryServiceImpl
             created.setValue(recipientEmail);
             return emailRepository.save(created);
         }));
+        logRepository.save(log);
     }
 
     private MimeMessage createMimeMessage(EmailDeliveryLog log) {
@@ -110,10 +112,11 @@ public class EmailDeliveryServiceImpl
     @Override
     @Transactional
     public void sendAll() {
+        logRepository.findByStatus(DeliveryStatus.FAILED)
+                .forEach(log -> log.setStatus(DeliveryStatus.PENDING));
         List<EmailDeliveryLog> pending = logRepository.findByStatus(DeliveryStatus.PENDING);
         try (ExecutorService executorService = Executors.newVirtualThreadPerTaskExecutor()) {
             executorService.invokeAll(pending.stream()
-                    .map(log -> new AsyncSendPreparation(log, createMimeMessage(log)))
                     .map(this::createCallable)
                     .toList()
             );
@@ -123,22 +126,24 @@ public class EmailDeliveryServiceImpl
         }
     }
 
-    private Callable<EmailDeliveryLog> createCallable(AsyncSendPreparation preparation) {
+    @Override
+    public int countPendingEmails() {
+        return logRepository.countByStatusIn(Set.of(DeliveryStatus.PENDING));
+    }
+
+    private Callable<EmailDeliveryLog> createCallable(EmailDeliveryLog deliveryLog) {
         return () -> {
             try {
                 log.info("Sending email...");
-                mailSender.send(preparation.message);
-                preparation.deliveryLog.setStatus(DeliveryStatus.SENT);
-                log.info("successfully sent to #{}", preparation.deliveryLog.getRecipient());
+                mailSender.send(createMimeMessage(deliveryLog));
+                deliveryLog.setStatus(DeliveryStatus.SENT);
+                log.info("successfully sent to #{}", deliveryLog.getRecipient());
             } catch (MailException e) {
-                preparation.deliveryLog.setStatus(DeliveryStatus.FAILED);
-                preparation.deliveryLog.setErrorMessage(e.getMessage());
-                log.info("failed sent to #{}", preparation.deliveryLog.getRecipient());
+                deliveryLog.setStatus(DeliveryStatus.FAILED);
+                deliveryLog.setErrorMessage(e.getMessage());
+                log.info("failed sent to #{}", deliveryLog.getRecipient().getId());
             }
-            return preparation.deliveryLog;
+            return deliveryLog;
         };
-    }
-
-    private record AsyncSendPreparation(EmailDeliveryLog deliveryLog, MimeMessage message) {
     }
 }

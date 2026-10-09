@@ -11,4 +11,6 @@ public interface EmailDeliveryService {
     Page<EmailDeliveryInfoDto> getAll(Pageable pageable);
 
     void sendAll();
+
+    int countPendingEmails();
 }

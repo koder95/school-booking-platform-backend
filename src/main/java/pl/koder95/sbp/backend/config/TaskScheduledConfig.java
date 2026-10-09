@@ -38,7 +38,9 @@ public class TaskScheduledConfig {
 
     @Scheduled(cron = "*/5 * * * * *")
     public void sendEmails() {
-        log.info("Checking email delivery requests...");
+        log.info("Checking email delivery requests... Pending emails: {}",
+                emailDeliveryService.countPendingEmails()
+        );
         emailDeliveryService.sendAll();
     }
 }
