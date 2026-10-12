@@ -2,6 +2,7 @@ package pl.koder95.sbp.backend.service.impl;
 
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.koder95.sbp.backend.dto.StudentAbilitiesDto;
@@ -20,6 +21,8 @@ public class AbilitiesServiceImpl implements AbilitiesService {
     private final AbilitiesRepository repository;
     private final AbilitiesMapper mapper;
     private final StudentRepository studentRepository;
+    @Value("${sbp.backend.booking.default-remaining-lesson:5}")
+    private int defaultRemainingLesson = 5;
 
     @Override
     public StudentAbilitiesDto getAbilities(UUID studentUuid) {
@@ -43,7 +46,7 @@ public class AbilitiesServiceImpl implements AbilitiesService {
         return repository.findById(studentUuid).orElseGet(() -> {
             Abilities newAbilities = new Abilities();
             newAbilities.setStudent(student);
-            newAbilities.setRemainingLessons(1);
+            newAbilities.setRemainingLessons(defaultRemainingLesson);
             return repository.save(newAbilities);
         });
     }
