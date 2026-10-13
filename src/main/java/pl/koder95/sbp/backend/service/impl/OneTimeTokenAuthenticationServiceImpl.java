@@ -13,6 +13,7 @@ import pl.koder95.sbp.backend.dto.GenerateOneTimeTokenRequestDto;
 import pl.koder95.sbp.backend.dto.SendEmailRequestDto;
 import pl.koder95.sbp.backend.dto.StudentLoginRequestDto;
 import pl.koder95.sbp.backend.dto.UserLoginResponseDto;
+import pl.koder95.sbp.backend.exception.InvalidOneTimeTokenException;
 import pl.koder95.sbp.backend.model.Email;
 import pl.koder95.sbp.backend.model.Student;
 import pl.koder95.sbp.backend.repository.EmailRepository;
@@ -62,7 +63,7 @@ public class OneTimeTokenAuthenticationServiceImpl implements OneTimeTokenAuthen
                 new OneTimeTokenAuthenticationToken(requestDto.token())
         );
         if (consumed == null) {
-            throw new IllegalStateException("invalid token");
+            throw new InvalidOneTimeTokenException("invalid one-time-token, usually expired");
         }
         Student principal = studentRepository.findByEmail(consumed.getUsername()).orElseThrow();
         String jwt = jwtUtil.generateToken(principal.getUsername());

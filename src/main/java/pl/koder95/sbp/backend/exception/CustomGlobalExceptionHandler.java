@@ -140,6 +140,13 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
         return createUniversalErrorMessageFormat(request, status, List.of());
     }
 
+    @ExceptionHandler(InvalidOneTimeTokenException.class)
+    protected ResponseEntity<Object> handleInvalidOneTimeTokenException(
+            InvalidOneTimeTokenException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        return createUniversalErrorMessageFormat(request, status, List.of(ex.getMessage()));
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     protected ResponseEntity<Object> handleBadCredentialsException(
             BadCredentialsException ex, HttpServletRequest request) {
