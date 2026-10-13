@@ -94,13 +94,15 @@ public class TeacherServiceImpl implements TeacherService {
         model = repository.save(model);
         TeacherDto result = mapper.toResponseDto(model);
         if (requestDto.color() != null) {
-            TeacherColor colorModel = colorMapper.toModel(model.getUuid(), repository);
+            TeacherColor colorModel = colorRepository.findById(uuid)
+                    .orElse(colorMapper.toModel(uuid, repository));
             colorMapper.updateModel(colorModel, requestDto.color());
             colorRepository.save(colorModel);
             result = colorMapper.fetchColor(result, colorRepository);
         }
         if (requestDto.workType() != null || requestDto.workDueDate() != null) {
-            TeacherWorkTerm workTerm = workTermMapper.toModel(model.getUuid(), repository);
+            TeacherWorkTerm workTerm = workTermRepository.findById(uuid)
+                    .orElse(workTermMapper.toModel(uuid, repository));
             workTermMapper.updateWorkTerm(workTerm, requestDto);
             workTermRepository.save(workTerm);
             result = workTermMapper.fetchWorkTerm(result, workTermRepository);
