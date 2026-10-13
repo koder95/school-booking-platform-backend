@@ -10,6 +10,7 @@ databaseChangeLog:
                     name: teacher_uuid
                     type: uuid
                     constraints:
+                      primaryKey: true
                       nullable: false
                       foreignKeyName: fk_teachers_colors_teacher_uuid
                       references: teachers(uuid)
