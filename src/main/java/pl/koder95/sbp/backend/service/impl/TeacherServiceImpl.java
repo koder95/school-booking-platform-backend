@@ -92,18 +92,20 @@ public class TeacherServiceImpl implements TeacherService {
         mapper.updateModel(model, requestDto,
                 emailRepository, subjectRepository, resourceRepository);
         model = repository.save(model);
-        if (requestDto.color() == null) {
-            return mapper.toResponseDto(model);
+        TeacherDto result = mapper.toResponseDto(model);
+        if (requestDto.color() != null) {
+            TeacherColor colorModel = colorMapper.toModel(model.getUuid(), repository);
+            colorMapper.updateModel(colorModel, requestDto.color());
+            colorRepository.save(colorModel);
+            result = colorMapper.fetchColor(result, colorRepository);
         }
-        TeacherColor colorModel = colorMapper.toModel(model.getUuid(), repository);
-        colorMapper.updateModel(colorModel, requestDto.color());
-        colorRepository.save(colorModel);
         if (requestDto.workType() != null || requestDto.workDueDate() != null) {
-            TeacherWorkTerm workTerm = workTermRepository.findByTeacher(model);
+            TeacherWorkTerm workTerm = workTermMapper.toModel(model.getUuid(), repository);
             workTermMapper.updateWorkTerm(workTerm, requestDto);
             workTermRepository.save(workTerm);
+            result = workTermMapper.fetchWorkTerm(result, workTermRepository);
         }
-        return colorMapper.fetchColor(mapper.toResponseDto(model), colorRepository);
+        return result;
     }
 
     private void updateEmail(Teacher model, String email) {

@@ -2,13 +2,13 @@ package pl.koder95.sbp.backend.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(name = "Abilities of a student", description = """
+@Schema(title = "Abilities of a student", description = """
         Provides information about limits set for a specific student.
         """)
 public record StudentAbilitiesDto(
-        @Schema(name = "A student")
+        @Schema(title = "A student")
         StudentDto student,
-        @Schema(name = "Number of remaining lessons available for booking", description = """
+        @Schema(title = "Number of remaining lessons available for booking", description = """
                 Every student has got a number of lessons available for booking
                 increased through buy actions. This value can be change by an admin anyway.
                 If it is equal zero then a student cannot book any lesson.
