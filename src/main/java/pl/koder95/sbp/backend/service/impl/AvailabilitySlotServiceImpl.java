@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import pl.koder95.sbp.backend.dto.AvailabilityDto;
 import pl.koder95.sbp.backend.dto.AvailabilitySlotDto;
+import pl.koder95.sbp.backend.dto.LessonDto;
+import pl.koder95.sbp.backend.dto.LessonSearchParamsDto;
 import pl.koder95.sbp.backend.exception.EntityNotFoundException;
 import pl.koder95.sbp.backend.factory.ZonedDateTimeFactory;
 import pl.koder95.sbp.backend.mapper.AvailabilitySlotMapper;
@@ -25,6 +27,7 @@ import pl.koder95.sbp.backend.repository.AvailabilitySlotRepository;
 import pl.koder95.sbp.backend.repository.TeacherRepository;
 import pl.koder95.sbp.backend.service.AvailabilityService;
 import pl.koder95.sbp.backend.service.AvailabilitySlotService;
+import pl.koder95.sbp.backend.service.LessonService;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +40,7 @@ public class AvailabilitySlotServiceImpl implements AvailabilitySlotService {
     private final TeacherRepository teacherRepository;
     private final ZonedDateTimeFactory timeFactory;
     private final Period period = Period.ofWeeks(1);
+    private final LessonService lessonService;
 
     @Override
     @Transactional
@@ -99,8 +103,13 @@ public class AvailabilitySlotServiceImpl implements AvailabilitySlotService {
             timestamps = new ArrayList<>(timestamps);
             timestamps.removeAll(existent);
         }
-        repository.saveAll(timestamps.stream().map(
-                timestamp -> createOrGetAvailabilitySlot(timestamp).addTeacher(teacher)
+        List<ZonedDateTime> found = lessonService.search(
+                LessonSearchParamsDto.builder().assignedTeacherUuid(teacher.getUuid()).build(),
+                Pageable.unpaged()
+        ).map(LessonDto::startTime).getContent();
+        repository.saveAll(timestamps.stream()
+                .filter(timestamp -> !found.contains(timestamp))
+                .map(timestamp -> createOrGetAvailabilitySlot(timestamp).addTeacher(teacher)
         ).toList());
     }
 
