@@ -10,4 +10,7 @@ public record CreateStudentRequestDto(
         @NotNull ZoneId zoneId,
         Boolean isTrial
 ) {
+    public CreateStudentRequestDto {
+        isTrial = isTrial == null || isTrial;
+    }
 }

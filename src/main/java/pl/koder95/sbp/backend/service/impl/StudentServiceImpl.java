@@ -45,6 +45,9 @@ public class StudentServiceImpl implements StudentService {
             emailRepository.save(new Email().setValue(dto.email()));
         }
         Student student = mapper.toModel(dto, emailRepository);
+        if (dto.isTrial() == null) {
+            student.setTrial(true);
+        }
         return mapper.toDto(repository.save(student), emailRepository, resourceRepository);
     }
 
