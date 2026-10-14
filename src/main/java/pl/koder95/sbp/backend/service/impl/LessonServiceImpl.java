@@ -1,6 +1,8 @@
 package pl.koder95.sbp.backend.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -101,14 +103,23 @@ public class LessonServiceImpl implements LessonService {
             teacher = teacherRepository.findTeacherWithFewestLessonsAmong(teachers)
                     .orElse(teachers.iterator().next());
         } else {
-            Subject subjectSelect = subjectRepository.findSubjectWithFewestLessonAmong(subjects)
-                    .orElse(List.copyOf(subjects).get((int) (subjects.size() * Math.random())));
-            teacher = teacherRepository.findTeacherWithFewestLessonsAmong(teachers, subjectSelect)
-                    .orElseThrow(() -> new RuntimeException(
-                            "Somehow it cannot select a teacher for a new lesson"
-                    ));
+            List<Teacher> list = subjects.stream()
+                    .map(subject -> teacherRepository
+                            .findTeacherWithFewestLessonsAmong(teachers, subject))
+                    .map(opt -> opt.orElse(null))
+                    .filter(Objects::nonNull)
+                    .toList();
+            list = new ArrayList<>(list);
+            teacher = list.removeFirst();
+            List<LessonDto> created = list.stream()
+                    .map(t -> create(request.teacherUuid(t.getUuid()).build()))
+                    .toList();
+            created.forEach(lesson -> log.info("Silently it was generated a lesson ({}) at {}",
+                    lesson.uuid(), lesson.startTime()));
         }
-        return create(request.teacherUuid(teacher.getUuid()).build());
+        LessonDto lesson = create(request.teacherUuid(teacher.getUuid()).build());
+        log.info("It was generated a lesson ({}) at {}", lesson.uuid(), lesson.startTime());
+        return lesson;
     }
 
     @Override
