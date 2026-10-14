@@ -87,6 +87,15 @@ public class LessonController {
         return lessonService.deleteById(lessonUuid);
     }
 
+    @DeleteMapping("/{lessonUuid}/unbooked")
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
+    @Operation(summary = "Delete an unbooked lesson",
+            description = "Delete an existing lesson but not booked yet")
+    public Page<LessonDto> deleteUnbooked(@ParameterObject Pageable pageable) {
+        return lessonService.deleteUnbooked(pageable);
+    }
+
     @GetMapping("/booked")
     @PreAuthorize("hasAnyRole('STUDENT', 'ADMIN')")
     @SecurityRequirement(name = "bearer-key")

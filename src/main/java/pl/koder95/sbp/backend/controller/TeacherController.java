@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import pl.koder95.sbp.backend.dto.AvailabilityDto;
 import pl.koder95.sbp.backend.dto.AvailabilitySlotDto;
 import pl.koder95.sbp.backend.dto.CreateTeacherRequestDto;
+import pl.koder95.sbp.backend.dto.LessonDto;
 import pl.koder95.sbp.backend.dto.TeacherDto;
 import pl.koder95.sbp.backend.dto.TeacherDtoWithoutEmail;
 import pl.koder95.sbp.backend.dto.UpdateAvailabilityRequestDto;
@@ -30,6 +31,7 @@ import pl.koder95.sbp.backend.dto.UpdateTeacherAvatarRequestDto;
 import pl.koder95.sbp.backend.dto.UpdateTeacherRequestDto;
 import pl.koder95.sbp.backend.service.AvailabilityService;
 import pl.koder95.sbp.backend.service.AvailabilitySlotService;
+import pl.koder95.sbp.backend.service.LessonService;
 import pl.koder95.sbp.backend.service.TeacherService;
 
 @RestController
@@ -40,6 +42,7 @@ public class TeacherController {
     private final TeacherService teacherService;
     private final AvailabilityService availabilityService;
     private final AvailabilitySlotService availabilitySlotService;
+    private final LessonService lessonService;
 
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @SecurityRequirement(name = "bearer-key")
@@ -71,6 +74,18 @@ public class TeacherController {
     )
     public TeacherDto get(@PathVariable UUID teacherUuid) {
         return teacherService.get(teacherUuid);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
+    @GetMapping("/{teacherUuid}/lessons/next")
+    @Operation(
+            summary = "Get teacher next lesson by teacher UUID",
+            description = "Retrieve the next lesson with a teacher by their UUID. "
+                    + "Only available for users with ADMIN role."
+    )
+    public LessonDto nextLessonWith(@PathVariable UUID teacherUuid) {
+        return lessonService.nextWith(teacherUuid);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
