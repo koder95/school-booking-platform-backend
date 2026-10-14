@@ -26,11 +26,12 @@ public class ZonedDateTimeFactoryImpl implements ZonedDateTimeFactory {
     @Override
     public List<ZonedDateTime> createTimestampsWith(ZoneId zoneId, Period period,
                                                     AvailabilityDto teacherAvailability) {
-        ZonedDateTime startTime = ZonedDateTime.now(zoneId);
+        final ZoneId finalZoneId = zoneId == null ? ZoneId.systemDefault() : zoneId;
+        ZonedDateTime startTime = ZonedDateTime.now(finalZoneId);
         LocalDate startDate = startTime.toLocalDate();
         return dateFactory.createDatesForPeriod(startDate, startDate.plus(period)).stream()
                 .flatMap(date -> buildLocalDateTimes(date, teacherAvailability).stream())
-                .map(local -> local.atZone(zoneId))
+                .map(local -> local.atZone(finalZoneId))
                 .toList();
     }
 
