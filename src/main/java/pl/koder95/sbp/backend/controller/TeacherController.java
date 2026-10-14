@@ -26,6 +26,7 @@ import pl.koder95.sbp.backend.dto.CreateTeacherRequestDto;
 import pl.koder95.sbp.backend.dto.TeacherDto;
 import pl.koder95.sbp.backend.dto.TeacherDtoWithoutEmail;
 import pl.koder95.sbp.backend.dto.UpdateAvailabilityRequestDto;
+import pl.koder95.sbp.backend.dto.UpdateTeacherAvatarRequestDto;
 import pl.koder95.sbp.backend.dto.UpdateTeacherRequestDto;
 import pl.koder95.sbp.backend.service.AvailabilityService;
 import pl.koder95.sbp.backend.service.AvailabilitySlotService;
@@ -93,6 +94,19 @@ public class TeacherController {
     )
     public TeacherDto update(@PathVariable UUID teacherUuid,
                              @Valid @RequestBody UpdateTeacherRequestDto dto) {
+        return teacherService.update(teacherUuid, dto);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @SecurityRequirement(name = "bearer-key")
+    @PutMapping("/{teacherUuid}/avatar")
+    @Operation(
+            summary = "Update teacher avatar",
+            description = "Update a teacher avatar by teacher UUID. "
+                    + "Only available for users with ADMIN role."
+    )
+    public TeacherDto updateAvatar(@PathVariable UUID teacherUuid,
+                                   @Valid @RequestBody UpdateTeacherAvatarRequestDto dto) {
         return teacherService.update(teacherUuid, dto);
     }
 

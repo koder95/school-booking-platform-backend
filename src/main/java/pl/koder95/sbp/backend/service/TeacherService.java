@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import pl.koder95.sbp.backend.dto.CreateTeacherRequestDto;
 import pl.koder95.sbp.backend.dto.TeacherDto;
 import pl.koder95.sbp.backend.dto.TeacherDtoWithoutEmail;
+import pl.koder95.sbp.backend.dto.UpdateTeacherAvatarRequestDto;
 import pl.koder95.sbp.backend.dto.UpdateTeacherRequestDto;
 
 public interface TeacherService {
@@ -18,6 +19,8 @@ public interface TeacherService {
     TeacherDto create(CreateTeacherRequestDto requestDto);
 
     TeacherDto update(UUID uuid, UpdateTeacherRequestDto requestDto);
+
+    TeacherDto update(UUID uuid, UpdateTeacherAvatarRequestDto requestDto);
 
     TeacherDto delete(UUID uuid);
 }

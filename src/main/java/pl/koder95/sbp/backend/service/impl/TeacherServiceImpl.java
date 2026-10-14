@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import pl.koder95.sbp.backend.dto.CreateTeacherRequestDto;
 import pl.koder95.sbp.backend.dto.TeacherDto;
 import pl.koder95.sbp.backend.dto.TeacherDtoWithoutEmail;
+import pl.koder95.sbp.backend.dto.UpdateTeacherAvatarRequestDto;
 import pl.koder95.sbp.backend.dto.UpdateTeacherRequestDto;
 import pl.koder95.sbp.backend.exception.EntityNotFoundException;
 import pl.koder95.sbp.backend.mapper.TeacherColorMapper;
@@ -45,7 +46,7 @@ public class TeacherServiceImpl implements TeacherService {
     public TeacherDto get(UUID uuid) {
         return repository.findById(uuid)
                 .map(mapper::toResponseDto)
-                .map(responseDto -> colorMapper.fetchColor(responseDto, colorRepository))
+                .map(this::fetchAll)
                 .orElseThrow(() -> new EntityNotFoundException("teacher not found: " + uuid));
     }
 
@@ -53,7 +54,7 @@ public class TeacherServiceImpl implements TeacherService {
     public Page<TeacherDto> getAll(Pageable pageable) {
         return repository.findAll(pageable)
                 .map(mapper::toResponseDto)
-                .map(responseDto -> colorMapper.fetchColor(responseDto, colorRepository));
+                .map(this::fetchAll);
     }
 
     @Override
@@ -70,22 +71,22 @@ public class TeacherServiceImpl implements TeacherService {
     @Transactional
     public TeacherDto create(CreateTeacherRequestDto requestDto) {
         Teacher model = mapper.toModel(requestDto, emailRepository, subjectRepository);
-        TeacherDto responseDto = mapper.toResponseDto(repository.save(model));
+        repository.save(model);
         TeacherColor colorModel = colorMapper.toModel(model.getUuid(), repository);
         colorMapper.updateModel(colorModel, requestDto.color());
         colorRepository.save(colorModel);
-        availabilityService.createEmptyFor(responseDto.uuid());
+        availabilityService.createEmptyFor(model.getUuid());
         TeacherWorkTerm workTerm = new TeacherWorkTerm();
         workTerm.setTeacher(model);
         workTermRepository.save(workTerm);
-        responseDto = colorMapper.fetchColor(responseDto, colorRepository);
-        return workTermMapper.fetchWorkTerm(responseDto, workTermRepository);
+        return fetchAll(mapper.toResponseDto(model));
     }
 
     @Override
     @Transactional
     public TeacherDto update(UUID uuid, UpdateTeacherRequestDto requestDto) {
-        Teacher model = repository.findById(uuid).orElseThrow();
+        Teacher model = repository.findById(uuid)
+                .orElseThrow(() -> new EntityNotFoundException("teacher does not exist"));
         if (requestDto.email() != null) {
             updateEmail(model, requestDto.email());
         }
@@ -107,6 +108,21 @@ public class TeacherServiceImpl implements TeacherService {
             workTermRepository.save(workTerm);
             result = workTermMapper.fetchWorkTerm(result, workTermRepository);
         }
+        return fetchAll(mapper.toResponseDto(model));
+    }
+
+    @Override
+    @Transactional
+    public TeacherDto update(UUID uuid, UpdateTeacherAvatarRequestDto requestDto) {
+        Teacher model = repository.findById(uuid)
+                .orElseThrow(() -> new EntityNotFoundException("teacher does not exist"));
+        model.setAvatar(resourceRepository.saveAvatarUrl(requestDto.avatarUrl()));
+        return fetchAll(mapper.toResponseDto(model));
+    }
+
+    private TeacherDto fetchAll(TeacherDto dto) {
+        TeacherDto result = colorMapper.fetchColor(dto, colorRepository);
+        result = workTermMapper.fetchWorkTerm(result, workTermRepository);
         return result;
     }
 
