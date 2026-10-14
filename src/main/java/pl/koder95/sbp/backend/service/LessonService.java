@@ -1,5 +1,6 @@
 package pl.koder95.sbp.backend.service;
 
+import java.time.Instant;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,9 +22,21 @@ public interface LessonService {
 
     LessonDto update(UUID lessonUuid, UpdateLessonRequestDto requestDto);
 
+    Page<LessonDto> deleteUnbooked(Pageable pageable);
+
     LessonDto deleteById(UUID lessonUuid);
 
     Page<LessonDto> getAllBooked(Pageable pageable);
 
     Page<LessonDto> search(LessonSearchParamsDto params, Pageable pageable);
+
+    default LessonDto nextWith(UUID teacherUuid) {
+        return search(
+                LessonSearchParamsDto.builder()
+                        .assignedTeacherUuid(teacherUuid)
+                        .from(Instant.now())
+                        .build(),
+                Pageable.ofSize(1)
+        ).getContent().getFirst();
+    }
 }

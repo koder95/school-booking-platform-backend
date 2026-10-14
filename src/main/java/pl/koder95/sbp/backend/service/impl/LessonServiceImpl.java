@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -160,6 +161,27 @@ public class LessonServiceImpl implements LessonService {
         );
         mapper.updateModel(lesson, requestDto, teacherRepository, subjectRepository);
         return mapper.toDto(repository.save(lesson), bookingRepository);
+    }
+
+    @Override
+    @Transactional
+    public Page<LessonDto> deleteUnbooked(Pageable pageable) {
+        List<Lesson> bookingsEmpty = repository.findAllByBookingsEmpty(Pageable.unpaged())
+                .getContent();
+        List<LessonDto> lessons = bookingsEmpty.stream()
+                .map(lesson -> mapper.toDto(lesson, bookingRepository))
+                .toList();
+        repository.saveAll(bookingsEmpty.stream()
+                .peek(lesson -> {
+                    lesson.setAssigned(null);
+                    lesson.setSubject(null);
+                })
+                .toList()
+        );
+        repository.deleteAllById(
+                lessons.stream().map(LessonDto::uuid).collect(Collectors.toSet())
+        );
+        return new PageImpl<>(lessons, pageable, lessons.size());
     }
 
     @Override

@@ -14,6 +14,9 @@ public interface LessonRepository extends JpaRepository<Lesson, UUID>,
     @EntityGraph(attributePaths = "bookings")
     Page<Lesson> findAllByBookingsNotEmpty(Pageable pageable);
 
+    @EntityGraph(attributePaths = "bookings")
+    Page<Lesson> findAllByBookingsEmpty(Pageable pageable);
+
     @EntityGraph(attributePaths = {"bookings", "bookings.student"})
     Page<Lesson> findAllByBookings_Student(Student student, Pageable pageable);
 
